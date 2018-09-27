@@ -1,0 +1,779 @@
+<import name="header" src="../../router/component/header"></import>
+<import name="home" src="../../router/page/home"></import>
+<import name="buyCar" src="../../router/page/buyCar"></import>
+<import name="sellingCar" src="../../router/page/sellingCar"></import>
+<import name="valuation" src="../../router/page/valuation"></import>
+<template>
+    <div class="tutorial-page">
+        <!-- 公用组件 -->
+        <header
+            prop1="{{city}}"
+            locationstate="{{locationstate}}"
+            menu="menu"
+            show="{{show}}"
+            selectlocation="{{selectlocation}}"
+            titleshow="{{true}}"
+            title="{{title}}"
+        ></header>
+        <!-- 使用tabs组件 -->
+        <div class="flexible-tabs">
+            <!-- 自定义tab-bar组件 -->
+            <div class="flexible-tabbar mian_box">
+                <div class="mian_box" >
+                    <div class="box">
+                        <tabs @change="tabsChange" id="tab" index="{{currentIndex}}">
+                            <tab-bar>
+                                <div class="tab-item" for="{{(index,item) in tabList}}" @click="clickTabBar(index)">
+                                    <image class="tab-icon" src="{{(index == currentIndex) ? item.selected :item.normal}}"></image>
+                                    <text style="font-size: 20px;" class="{{(index == currentIndex) ? 'selected' :'normal'}}">{{item.name}}</text>
+                                </div>
+                            </tab-bar>
+                        </tabs>
+                    </div>
+                </div>
+            </div>
+            <!-- 监听change事件，触发时动态修改tabs的index属性 -->
+            <div  >
+                <div class="tab-content-section div-tabcontent-section" show="{{currentIndex === 0}}" style="padding-bottom: 90px;">
+                    <home location="{{location}}" city="{{city.cityName}}"
+                        h="{{ h }}">
+                    </home>
+                </div>
+                <div class="tab-content-section div-tabcontent-section"  show="{{currentIndex === 1}}">
+                    <buyCar location="{{location}}" city="{{city.cityName}}"
+                        h="{{ h }}">
+                    </buyCar>
+                </div>
+                <div class="tab-content-section div-tabcontent-section" show="{{currentIndex === 2}}">
+                    <sellingCar location="{{location}}" city="{{city.cityName}}"
+                        h="{{ h }}">
+                    </sellingCar>
+                </div>
+                <div class="tab-content-section div-tabcontent-section" show="{{currentIndex === 3}}">
+                    <valuation location="{{location}}" city="{{city.cityName}}"
+                        h="{{ h }}">
+                    </valuation>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+    import router from '@system.router';
+    import fetch from '@system.fetch'
+    import prompt from '@system.prompt'
+    import storage from '@system.storage'
+    import geolocation from '@system.geolocation'
+    import device from '@system.device'
+    import network from '@system.network'
+    import app from '@system.app'
+    import { connect } from 'quickapp-redux'
+    import { inItdata } from '../../util/dataX.js'
+    import { defaultCarData, headerArrModel } from '../../util/defaultCarData.js'
+    import { CC2PY } from '../../util/pinyin.js'
+    import { ajaxFn, getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, tabData, rowListHeaderData, utlSpliceFn } from '../../util/util.js'
+    const foo = {
+        data: {
+            selectCityType: 'currentCity',
+            buyCarListData: [],
+            currentIndex: 0,
+            currnetData: null,
+            listDatabrandpage: [],
+            citySelectTop: false,
+            title: '',
+            showRecommend: false,
+            show: true,
+            tabList: [{
+                    name: '首页',
+                    normal: '/static/icon/icon1.png',
+                    selected: '/static/icon/icon1-current.png'
+                },
+                {
+                    name: '买车',
+                    normal: '/static/icon/icon2.png',
+                    selected: '/static/icon/icon2-current.png'
+                },
+                {
+                    name: '卖车',
+                    normal: '/static/icon/icon3.png',
+                    selected: '/static/icon/icon3-current.png'
+                },
+                {
+                    name: '估价',
+                    normal: '/static/icon/icon4.png',
+                    selected: '/static/icon/icon4-current.png'
+                }
+            ],
+            tabSelectedIndex: 0,
+            location: '',
+            selectlocation: '选择城市',
+            city: '', // 当前城市
+            locationstate: 'currentCity', //默认 currentCity 用 city ,  selectCity 用 selectlocation
+            webviewurl: '',
+            h: '',
+            getLongitude: '',
+            getLatitude: '',
+            xxx: '',
+            showTabs: true,
+            PaddBottom100: '100px',
+            year: [],
+            PageIndex: 1,
+            isIndex1: true,
+            listDataCarSource: [],
+            isNOData: false
+        },
+        clickTabBar(index) {
+            if(index == 2 || index == 3) {
+                this.dispatch({ type: 'set', data: {show: false} })
+            } else if(index == 1){
+                this.$broadcast('clearInput', { })
+                this.dispatch({ type: 'set', data: {locationstate: this.state.selectCityType} })
+                this.dispatch({ type: 'set', data: {show: true} })
+                this.buyCarListData1(this.state.currnetData)
+            } else {
+                this.dispatch({ type: 'set', data: {locationstate: this.state.selectCityType} })
+                this.dispatch({ type: 'set', data: {show: true} })
+            }
+            this.dispatch({ type: 'set', data: {title: tabData[index], currentIndex: index} })
+        },
+        fetchDeviceInfo (ret,device) { // 统计接口
+            var v = app.getInfo()
+            var url = `${inItdata.http}?v=${inItdata.v}&action=getmobiledeviceid&appType=3&appVersion=${v.versionName}&deviceToken=${device}&DeviceBrand=${ret.brand}&DeviceModel=${ret.model}&sysSN=${ret.osType}&sysVersion=${ret.osVersionName}`
+            fetch.fetch({
+                url,
+                method: 'GET',
+                success: data => {
+                    var res = JSON.parse(data.data).data
+                    inItdata.header =  {
+                        appuk: res.appuk,// 由设备激活（UV统计）接口返回
+                        devicetoken: device,//设备唯一标识符(为了防止和其他app重复，加quick后缀，如868403026561511quick)
+                        signature: '',//暂时不传
+                        appid: 'app.quickapp',//app.quickapp
+                        timestamp: Date.now()//1528276526458
+                    }
+                },
+                fail: (data, code) => {
+                    console.log(data, code)
+                }
+            })
+        },
+        onCreate: function () {
+            var that = this;
+            //统计
+            device.getInfo({
+                success: function (ret) {
+                    device.getId({
+                        type: ['device'],
+                        success: function (data) {
+                            that.fetchDeviceInfo(ret,data.device+'quick')
+                            that.dispatch({ type: 'set', data: {phoneInfo: ret} })
+                        },
+                        fail: function (data,code) {
+                            if (code&&code=='201') {
+                                that.fetchDeviceInfo(ret,'')
+                            }
+                        }
+                    })
+                }
+            })
+        },
+        onInit() {
+            this.setYear()
+            this.$on('onTabChange', this.onTabChange)
+            this.$on('webviewChange', this.webviewChange)
+            this.$on('goBuyCarPage', this.goBuyCarPage)
+            this.$on('scrolltop', this.scrolltop)
+        },
+        scrolltop() {
+            this.$broadcast('showBuyCarTop')
+        },
+        getCarDataFn() {
+            ajaxFn(fetch, inItdata.carData, {}).then((res) => { // 获取全国的 列表数据
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    this.dispatch({ type: 'set', data: {listDatabrandpage:jsonParse} })
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        setYear() {
+            var oDate = new Date()
+            var currentYear = oDate.getFullYear()
+            for(var i = 0; i < 20; i++) {
+                this.state.year.push(currentYear-i)
+            }
+            this.dispatch({ type: 'set', data: {year: this.state.year} })
+        },
+        goBuyCarPage(data) {
+            if(data.detail.index == 1) {
+                this.$broadcast('homeBuyCarBtnClick', { })
+            }
+            this.clickTabBar(data.detail.index)
+        },
+        onShow() {
+            network.subscribe({
+                callback:  (data) => {
+                    if(data.type == 'none') {} else {
+                        this.getCarDataFn()
+                    }
+                }
+            });
+            this.whatCity()
+            if(this.state.citySelectTop == 1) {
+                this.$broadcast('showBuyCarTop')
+                this.dispatch({ type: 'set', data: {citySelectTop: 0} })
+            } else if(this.state.citySelectTop == 2) {
+                this.buyCarListData2(this.state.currnetData)
+                this.$broadcast('showBuyCarTop')
+                this.dispatch({ type: 'set', data: {citySelectTop: 0} })
+            }
+        },
+        sortHeaderSet(D) {
+            if(this.state.currentRowlistdata.id != 0) {
+                let data = Array.from(new Set(D.concat([1])))
+                this.dispatch({ type: 'set', data: {headerArr: data} })
+            } else {
+                if(D.indexOf(1) != -1 ) {
+                    D.splice(D.indexOf(1), 1)
+                }
+                this.dispatch({ type: 'set', data: {headerArr: D} })
+            }
+        },
+        setheaerFn(labelD) {
+            let title = labelD.title
+            let n = headerArrModel[title]
+            let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+            if(D.indexOf(undefined) != -1 ) {
+                D.splice(D.indexOf(undefined), 1)
+            }
+            this.sortHeaderSet(D)
+        },
+        // 获取 头部数据 中 要取的数据在第几项
+        setHeaderDataIndex(labelD) {
+            console.log('a1111111---index', JSON.stringify(labelD))
+            let headerArr = this.state.headerArr
+            this.dispatch({ type: 'set', data: {headerArr: []} })
+            for(var i = 0; i < labelD.length; i++) {
+                if(labelD[i].title == 'home筛选_练手车') {
+                    for(var j = 0 ;j < labelD[i].type.length; j++) {
+                        let title = labelD[i].type[j].title
+                        let n = headerArrModel[title]
+                        let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+                        if(D.indexOf(undefined) != -1 ) {
+                            D.splice(D.indexOf(undefined), 1)
+                        }
+                        this.dispatch({ type: 'set', data: {headerArr: D} })
+                    }
+                    this.sortHeaderSet(this.state.headerArr)
+                } else {
+                    if(labelD[i].title == '筛选') {
+                        if(labelD[i].data.selectName == '淘车认证') {
+                            let title = labelD[i].title
+                            let n = headerArrModel[title]
+                            let D = Array.from(new Set(this.state.headerArr.concat([0])))
+                            if(D.indexOf(undefined) != -1 ) {
+                                D.splice(D.indexOf(undefined), 1)
+                            }
+                            this.sortHeaderSet(D)
+                        } else {
+                            this.setheaerFn(labelD[i])
+                        }
+                    } else {
+                        this.setheaerFn(labelD[i])
+                    }
+                }
+            }
+        },
+        // 买车 列表数据
+        buyCarListData1(currnetData) {
+            if(!this.state.isIndex1) { // 第一次不进来以后进来
+                this.dispatch({ type: 'set', data: {moreShow: this.state.moreShow} })
+                return 
+            } else { // 第一次带来， 以后就不进来了
+                this.dispatch({ type: 'set', data: {moreShow: 4} })
+            }
+            let keys = this.state.currentRowlistdata
+            let orderid = rowListHeaderData[keys.id].orderid
+            let ordertype = rowListHeaderData[keys.id].ordertype
+            let url = `${inItdata.http}?v=${inItdata.v}&imei=&referrer=1&action=getcarlist&cid=${currnetData.cityId}&entry=taocheapp&pindex=${this.state.PageIndex}&orderid=${orderid}&ordertype=${ordertype}${utlSpliceFn(this.state.labeldata)}`
+            console.log('jsonParse index',url)
+            this.setHeaderDataIndex(this.state.labeldata)
+            ajaxFn(fetch, url, {}).then((res) => {
+                this.dispatch({ type: 'set', data: {isrefresh: false} })
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    if(jsonParse.status == '100') {
+                        const { PageIndex, PageCount } = jsonParse.data
+                        if(Number(PageIndex) == Number(PageCount)) {
+                            this.dispatch({ type: 'set', data: {moreShow: 2, buyCarListData:jsonParse.data, PageIndex: this.state.PageIndex} })
+                        } else if(Number(PageIndex) < Number(PageCount)) {
+                            this.dispatch({ type: 'set', data: {moreShow: 1, PageIndex: this.state.PageIndex, buyCarListData:jsonParse.data} })
+                            this.dispatch({ type: 'set', data: {isIndex1: false} })
+                        } else if(Number(PageIndex) > Number(PageCount)){
+                            if( jsonParse.data.Items.length == 0) {
+                                this.dispatch({ type: 'set', data: { moreShow: 3, PageIndex: this.state.PageIndex, buyCarListData:jsonParse.data} })
+                            } else {
+                                this.dispatch({ type: 'set', data: { moreShow: 2, PageIndex: this.state.PageIndex, buyCarListData:jsonParse.data} })
+                            }
+                        }
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        })
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        // 买车 列表数据
+        buyCarListData2(currnetData) {
+            let keys = this.state.currentRowlistdata
+            let orderid = rowListHeaderData[keys.id].orderid
+            let ordertype = rowListHeaderData[keys.id].ordertype
+            let url = `${inItdata.http}?v=${inItdata.v}&imei=&referrer=1&action=getcarlist&cid=${currnetData.cityId}&entry=taocheapp&pindex=${this.state.PageIndex}&orderid=${orderid}&ordertype=${ordertype}${utlSpliceFn(this.state.labeldata)}`
+            console.log('jsonParse index2',url)
+            this.setHeaderDataIndex(this.state.labeldata)
+            ajaxFn(fetch, url, {}).then((res) => {
+                this.dispatch({ type: 'set', data: {isrefresh: false} })
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    if(jsonParse.status == '100') {
+                        const { PageIndex, PageCount } = jsonParse.data
+                        console.log('PageIndex', PageIndex, PageCount, PageIndex != PageCount)
+                        if(PageIndex == PageCount) {
+                            this.dispatch({ type: 'set', data: {moreShow: 2, buyCarListData:jsonParse.data, PageIndex: this.state.PageIndex} })
+                        } else if(PageIndex < PageCount) {
+                            this.dispatch({ type: 'set', data: {moreShow: 1, PageIndex: this.state.PageIndex, buyCarListData:jsonParse.data} })
+                        } else if(PageIndex > PageCount){
+                            this.dispatch({ type: 'set', data: { moreShow: 2, PageIndex: this.state.PageIndex, buyCarListData:jsonParse.data} })
+                        }
+                        if(jsonParse.data.Items.length == 0) {
+                                this.dispatch({ type: 'set', data: {isNOData: true} })
+                        } else {
+                                this.dispatch({ type: 'set', data: {isNOData: false} })
+                        }
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        })
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        onTabChange(name) {
+            this.webviewurl = name.detail.url
+            this.tabSelectedIndex = name.detail.params
+        },
+        webviewChange(name) {
+            this.showTabs = name.detail.showTab
+            if (name.detail.showTab) {
+                this.PaddBottom100 = '100px'
+            } else {
+                console.log("this.PaddBottom100 = '0px'")
+                this.PaddBottom100 = '0px'
+            }
+        },
+        // 后端 cooki
+        setCookie(cityId) {
+            let url = `http://apiwx.taoche.com/ajax/seth5cookie.ashx?cityId=${cityId}`
+            ajaxFn(fetch, url, {}).then((res) => {
+                console.log('res', res)
+            })
+        },
+        // 用户是否点了 授权， 访问接口
+        userAuthorized(key) {
+            storage_set(storage, 'userAuthorized', key, prompt, () => {}) // 存储达到 storage 里面
+        },
+        // 获取 到底是 那个城市的 具体方法
+        whatCity() {
+            let httpDefault = 'http://apiwx.taoche.com/api/Generic/Default?' // 王帅
+            let httpGetLocation = 'http://apiwx.taoche.com/api/Generic/GetLocation?'
+            let httpGo = 'https://apiwx.taoche.com/api/CarSource/GetUcarList?pageindex=1&pageSize=20&'
+            storage_get(storage, 'locationstate', prompt, (cityData) => {
+                // let v = {}
+                //                 v.cityName = '合肥'
+                //                 v.cityId = '101'
+                //             this.setCityFn(v)
+                if (!cityData || cityData == 'currentCity') {
+                    this.selectCityFn('currentCity')
+                    this.dispatch({ type: 'set', data: { selectCityType: 'currentCity'} })
+                    storage_get(storage, 'locationSet', prompt, (locationSet) => {
+                        if (!!locationSet && !!JSON.parse(locationSet).getLongitude) {
+                            this.cuurentCity(httpDefault, httpGetLocation, httpGo) //当前城市
+                        } else {
+                            let v = {}
+                            v.cityName = '全国'
+                            v.cityId = '0'
+                            this.setCityFn(v)
+                            this.setCookie(0)
+                            ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                                let json = JSON.parse(cityData.data)
+                                this.setStateFunction(json)
+                            })
+                            this.firstUse(httpGetLocation, httpDefault, httpGo)
+                        }
+                    })
+                } else {
+                    this.selectCityFn('selectCity')
+                    this.dispatch({ type: 'set', data: { selectCityType: 'selectCity'} })
+                    storage_get(storage, 'selectlocation', prompt, (selectData) => {
+                        this.h = JSON.parse(selectData).cityName
+                        this.setCookie(JSON.parse(selectData).cityId)
+                        this.selectlocation = JSON.parse(selectData)
+                        this.dispatch({ type: 'set', data: {currnetData: JSON.parse(selectData)}})
+                        this.selectCity(httpDefault, httpGetLocation, httpGo) // 选择城市
+                    })
+                }
+            })
+        },
+        // 当前城市 区域
+        cuurentCity(httpDefault, httpGetLocation, httpGo) {
+            storage_get(storage, 'city', prompt, (storage_cityData) => {
+                let json_cityData = !!storage_cityData ? JSON.parse(storage_cityData) : storage_cityData
+                if (json_cityData != '') { // 判断 当前城市 carCityId， 是否存在， 如果存在了
+                    this.setCityFn(json_cityData)
+                    this.setCookie(json_cityData.cityId)
+                    this.h = json_cityData.cityName
+                    this.afterUse(json_cityData, httpGetLocation, httpDefault, httpGo)
+                } else { // 不存在 去获取 定位，
+                    this.firstUse(httpGetLocation, httpDefault, httpGo)
+                }
+            })
+        },
+        setCityStateFunction(json, k) {
+            this.selectCityFn(k) //设置 storage 的状态是选择的城市
+            console.log('setCity', json.cityName, json.cityId)
+            this.h = json.cityName
+            this.setCityFn(json) //设置 城市数据 到 storage
+        },
+        // 设置 状态的地方
+        setStateFunction(json) {
+            if(json.data.usedCarList.length == 0) {
+                this.dispatch({ type: 'set', data: {showRecommend: false} })
+            } else {
+                this.dispatch({ type: 'set', data: {showRecommend: true} })
+            }
+            this.dispatch({ type: 'set', data: {listDataCarSource: json.data.usedCarList} })
+        },
+        // 全国数据调用
+        allData(httpGo) {
+            let v = {}
+            v.cityName = '全国'
+            v.cityId = '0'
+            this.setCityFn(v)
+            ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                let json = JSON.parse(cityData.data)
+                this.setStateFunction(json)
+                this.setCityStateFunction(v, 'currentCity')
+            })
+        },
+        // 第一次使用 过后 拿到cityId  是 0 时
+        national(json_cityData, httpGo) {
+            ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                let json = JSON.parse(cityData.data)
+                json.data.usedCarList.cityName = '全国'
+                this.setStateFunction(json)
+                this.setCityStateFunction(json_cityData, 'currentCity')
+            })
+        },
+
+        // 第一次使用 过后 拿到cityId  不是 0 时
+        noNational(json_cityData, json, httpDefault, httpGo) { // 不是全国
+            if (json_cityData.cityName == json.data.cityName) { // 城市位置没有变
+                this.setCityStateFunction(json_cityData, 'currentCity')
+                let url = `${httpGo}cityId=${json.data.cityId}`
+                ajaxFn(fetch, url, {}).then((city) => {
+                    let jsonCityData = JSON.parse(city.data)
+                    this.setStateFunction(jsonCityData)
+                })
+            } 
+        },
+        // 设置 选中数据
+        setSelectData(json, k) {
+            this.selectCityFn(k) //设置 storage 的状态是选择的城市
+            this.selectlocation = json
+        },
+        // 第一次使用 过后
+        afterUse(json_cityData, httpGetLocation, httpDefault, httpGo) {
+            getLocation(geolocation, prompt, (location) => { // 用户同意 获取 经纬度
+                this.getLongitude = location.getLongitude
+                this.getLatitude = location.getLatitude
+                this.locationSet(location)
+                let url = ''
+                if (this.getLongitude) {
+                    url =
+                        `${httpGetLocation}longitude=${location.getLongitude}&latitude=${location.getLatitude}`
+                } else {
+                    url = `${httpGetLocation}longitude=0000000000&latitude=00000000`
+                }
+                ajaxFn(fetch, url, {}).then((new_cityData) => { // 将 carCityId， 拿到，存入到 storage 里面
+                    let json = JSON.parse(new_cityData.data)
+                    // this.city = json.data.cityId
+                    if (new_cityData.code == '200') {
+                        if (json.data.cityId == 0) { // 不是全国 的情况
+                            // this.city = json.data
+                            json.data.cityName = '全国'
+                            this.noNational(json_cityData, json, httpDefault, httpGo);
+                        } else { // 走全国数据
+                            this.noNational(json_cityData, json, httpDefault, httpGo);
+                        }
+                    } else {
+                        let v = {}
+                        v.cityName = '全国'
+                        v.cityId = '0'
+                        this.setCityFn(v)
+                        ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                            let json = JSON.parse(cityData.data)
+                            this.setStateFunction(json)
+                            this.setCityStateFunction(v, 'currentCity')
+                        })
+                    }
+                    console.log('lurl  url', this.getLongitude)
+                })
+            }, () => {
+                let v = {}
+                v.cityName = '全国'
+                v.cityId = '0'
+                this.setCityFn(v)
+                ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                    let json = JSON.parse(cityData.data)
+                    this.setStateFunction(json)
+                    this.setCityStateFunction(v, 'currentCity')
+                })
+            })
+        },
+        // 地理位置
+        locationSet(locationSet) {
+            storage_set(storage, 'locationSet', locationSet, prompt, () => {}) // 存储达到 storage 里面
+        },
+        // 用户首次使用
+        firstUse(httpGetLocation, httpDefault, httpGo) {
+            getLocation(geolocation, prompt, (location) => { // 用户同意 获取 经纬度
+                this.locationSet(location)
+                let url =
+                    `${httpGetLocation}longitude=${location.getLongitude}&latitude=${location.getLatitude}`
+                ajaxFn(fetch, url, {}).then((cityData) => { // 将 carCityId， 拿到，存入到 storage 里面
+                    let json = JSON.parse(cityData.data)
+                    if (json.data.cityId) { // 服务器定位成功
+                        this.setCookie(json.data.cityId)
+                        let url = `${httpGo}cityId=${json.data.cityId}`
+                        ajaxFn(fetch, url, {}).then((city) => {
+                            let jsonCityData = JSON.parse(city.data)
+                            this.setCityStateFunction(json.data, 'currentCity')
+                            this.setStateFunction(jsonCityData)
+                        })
+                    } else { // 定位失败
+                        let v = {}
+                        v.cityName = '全国'
+                        v.cityId = '0'
+                        this.setCityFn(v)
+                        this.setCookie(0)
+                        ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                            let json = JSON.parse(cityData.data)
+                            this.setStateFunction(json)
+                            this.setCityStateFunction(v, 'currentCity')
+                        })
+                    }
+                })
+            }, () => {
+                let v = {}
+                v.cityName = '全国'
+                v.cityId = '0'
+                this.setCityFn(v)
+                this.setCookie(0)
+                ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                    let json = JSON.parse(cityData.data)
+                    this.setStateFunction(json)
+                    this.setCityStateFunction(v, 'currentCity')
+                })
+            })
+        },
+
+        // 选择城市 区域
+        selectCity(httpDefault, httpGetLocation, httpGo) {
+            storage_get(storage, 'selectlocation', prompt, (selectData) => {
+                let jsonParseD = JSON.parse(selectData)
+                if (jsonParseD.cityId) {
+                    let url = `${httpGo}cityId=${jsonParseD.cityId}`
+                    ajaxFn(fetch, url, {}).then((city) => {
+                        let jsonCityData = JSON.parse(city.data)
+                        this.setSelectData(jsonParseD, 'selectCity')
+                        this.setStateFunction(jsonCityData)
+                    })
+                } else {
+                    ajaxFn(fetch, httpGo, {}).then((cityData) => { // 获取全国的 列表数据
+                        let data = JSON.parse(cityData.data)
+                        data.data.usedCarList.cityName = '全国'
+                        this.setSelectData(jsonParseD, 'selectCity')
+                        this.setStateFunction(data)
+                    })
+                }
+            })
+        },
+        // 取消时， 那当前 数据 去哪到 列表
+        setList(jsonParseD, httpGo) {
+            let url = `${httpGo}cityId=${jsonParseD.cityId}`
+            ajaxFn(fetch, url, {}).then((cityData) => { // 获取全国的 列表数据
+                let json = JSON.parse(cityData.data)
+                this.setStateFunction(json)
+                this.setCityStateFunction(jsonParseD, 'currentCity')
+            })
+        },
+        // 设置定位的城市
+        setCityFn(cityData) {
+            this.city = cityData
+            storage_set(storage, 'city', cityData, prompt, () => {}) // 存储达到 storage 里面
+            this.dispatch({ type: 'set', data: {currnetData: cityData} })
+            this.buyCarListData2(cityData)
+        },
+        // 设置 选中的城市 ,在选中状态
+        selectCityFn(cityData) {
+            this.locationstate = cityData
+            storage_set(storage, 'locationstate', cityData, prompt, () => {}) // 存储达到 storage 里面
+        },
+        // 点击tabr 的方法
+        tabItemClick(index) {
+            let text = ''
+            let a = Math.random()
+            if (CC2PY(this.h).toLowerCase() == 'zhongqing') {
+                text = 'chongqing'
+            } else {
+                text = CC2PY(this.h).toLowerCase()
+            }
+            if (index == 1) {
+                this.webviewurl = `http://${text}.m.taoche.com/kuaiyingyong/all/`
+            } else if (index == 2) {
+                this.webviewurl = `http://cooper.m.taoche.com/cooper/sellcar/`
+            } else if (index == 3) {
+                this.webviewurl = `http://cooper.m.taoche.com/pinggu/`
+            }
+            this.tabSelectedIndex = index;
+        },
+        tabsChange(e) {
+            this.tabSelectedIndex = e.index;
+        },
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.selectCityType = dataPatch.state.selectCityType
+            component.title = dataPatch.state.title
+            component.buyCarListData = dataPatch.state.buyCarListData
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+            component.currnetData = dataPatch.state.currnetData
+            component.labeldata = dataPatch.state.labeldata
+            component.currentIndex = dataPatch.state.currentIndex
+            component.listDatabrandpage = dataPatch.state.listDatabrandpage
+            component.listDataCarSource = dataPatch.state.listDataCarSource
+            component.year = dataPatch.state.year
+            component.show = dataPatch.state.show
+            component.citySelectTop = dataPatch.state.citySelectTop
+            component.PageIndex = dataPatch.state.PageIndex
+            component.PageCount = dataPatch.state.PageCount
+            component.isIndex1 = dataPatch.state.isIndex1
+            component.phoneInfo = dataPatch.state.phoneInfo
+            component.isNOData = dataPatch.state.isNOData
+            component.showRecommend = dataPatch.state.showRecommend
+            
+        }
+    }
+    export default connect( mapStateToData, fn )(foo)
+</script>
+<style>
+    .div-tabcontent {
+        flex: 1;
+        background-color: #eeeeee;
+    }
+    .div-tabcontent-section{
+        flex: 1;
+        justify-content: center;
+        margin: 10px;
+        background-color: #ffffff;
+    }
+    .tutorial-page {
+        flex: 1;
+    }
+    .flexible-tabs {
+        flex: 1;
+        flex-direction: column;
+    }
+    .flexible-tabs .flexible-tab-content {
+        flex: 1;
+    }
+    .flexible-tabbar {
+        padding: 0 30px;
+        background-color: #f1f1f1;
+        align-items: center;
+    }
+    .flexible-tabbar .active {
+        color: #0faeff;
+        border-bottom-color: #0faeff;
+    }
+    .flexible-tabbar image {
+        width: 50px;
+        resize-mode: contain;
+    }
+    .tab-content-section {
+        flex: 1;
+        background-color: #ffffff;
+        justify-content: center;
+    }
+    .mian_box {
+        align-items: flex-end;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 100px;
+        border-top-color: #dbdbdb;
+        border-top-width: 1px;
+        background-color: #ffffff;
+    }
+    .box {
+        height: 100px;
+        width: 100%;
+    }
+    #tab {
+        height: 100px;
+    }
+    .tab-item {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+    }
+    .tab-icon {
+        width: 50px;
+        height: 50px;
+    }
+    tab-bar {
+        align-items: flex-end;
+        height: 100px;
+        border-top-color: #DDDDDD;
+        border-top-width: 1px;
+    }
+    .normal {
+        color: #818D9A;
+    }
+    .selected {
+        color: #FF6402;
+    }
+</style>

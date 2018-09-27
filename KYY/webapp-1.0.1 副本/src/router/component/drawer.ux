@@ -1,0 +1,196 @@
+
+<import name="loading"  src="../../Template/loading"></import>
+<template>
+    <!-- template里只能有一个根节点 -->
+    <!-- <stack >
+        <div class="demo-page">
+            <div class="transform" id="click"></div>
+            <popup target="click" placement="bottomRight"><text>bottomLeft</text></popup>
+        </div>
+
+        <div style="width: 100%;height: 100%;justify-content: center;align-items: center">
+            <div style="width: 300px;height: 300px;margin-top:50px;border-radius: 20px;background-color: rgba(14,14,14,0.5);
+        flex-direction: column;justify-content: center;align-items: center">
+                <image class="loading" src="/Common/loading.png"></image>
+                <text style="margin-top: 20px;color: #f1f1f1">正在加载...</text>
+            </div>
+        </div>
+    </stack> -->
+        <stack >
+            <div 
+                class="demo-page {{drawerShow ? 'opacity05Show' : 'transformHide'}}" 
+                @click="hideClick(false)"  >
+            </div>
+            <list id="listDrawer" class="demo-page2 transform  {{this.drawerShow ? 'transformShow' : 'transformHide'}}">
+                <block for="item in list">
+                    <list-item>
+                        <div class="list_box"><text>{{drawerShow}}</text></div>
+                    </list-item>
+                </block>
+            </list>
+        </stack>
+
+</template>
+
+
+
+<script>
+    import router from '@system.router';
+    import prompt from '@system.prompt'
+    import { inItdata } from '../../util/dataX.js'
+
+    export default {
+        props: [
+            'drawerShow'
+        ],
+        data: {
+            loadingShow:true,
+            list: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
+        },
+        onInit() {
+        },
+        hideClick() {
+            this.drawerShow = false
+            this.$emit('evtType2', { params: '额外参数' })
+        },
+        onShow(){
+            setTimeout(()=> {
+                this.loadingShow = false;
+            },5000)
+        }
+    }
+</script>
+
+<style>
+    .list_box{
+        height: 114px;
+        flex-grow: 1;
+        background-color: #ffffff;
+        border-bottom-width: 1px;
+        border-bottom-color: #e3e3e3;
+        padding-left: 38px;
+    }
+    .list_box text{
+        font-size: 30px;
+        color: #001414;
+    }
+    .demo-page {
+        width: 100%;
+        height: 0%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #000000;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        opacity: 0;
+        height: 90%;
+    }
+    .demo-page2 {
+        width: 532px;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        height: 90%;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        /* animation-delay:2s; */
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        /* animation-delay:2s; */
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            opacity: 0;
+            height: 0
+        }
+        to {
+            opacity: 0.5;
+            height: 100%;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.5;
+            height: 100%
+        }
+        to {
+            opacity: 0;
+            height: 0;
+            width: 0;
+            display: none;
+            background-color: #339933;
+        }
+    }
+    .transform {
+        transform: translate(540px 0);
+    }
+    .transformShow {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformShow;
+        /* animation-delay:2s; */
+        animation-duration: 200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    .transformHide {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformHide;
+        /* animation-delay:2s; */
+        animation-duration: 200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+
+    @keyframes transformShow {
+        from {
+            transform: translate(540px 0);
+        }
+        to {
+            transform: translate(0px 0px);
+        }
+    }
+    @keyframes transformHide {
+        from {
+            transform: translate(0 0);
+        }
+        to {
+            transform: translate(540px 0px);
+        }
+    }
+
+    .loading {
+        width: 100px;
+        height: 100px;
+        animation-name: loading;
+        animation-duration: 2000ms;
+        animation-iteration-count: infinite;
+    }
+
+    @keyframes loading {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>

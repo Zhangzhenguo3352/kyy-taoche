@@ -1,0 +1,41 @@
+<script>
+  /**
+   * 应用级别的配置，供所有页面公用
+   */
+  import util from './util'
+  import { connectApp } from 'quickapp-redux'
+  import { createStore } from 'redux'
+  import stateData from './type.js'
+  // Just a reducer example for creating store
+  const store = createStore(function reducer (state = stateData.state, action){
+    // switch (action.type) {
+    //   case 'INCREASE_A':
+    //     // return { ...state, a: state.a + 1 }
+    //     return {  a: state.a + 1 }
+    //     break;
+    //   default:
+    //     return state
+    // }
+    if(action.type == 'set') {
+
+      for(var i in state) {
+
+        for(var j in action.data) {
+          if(i == j) {
+            state[i] = action.data[j]
+          }
+        }
+      }
+      return state
+    } else {
+      return state
+    }
+
+  })
+
+  export default connectApp(store, {
+    /**manifest**/
+    showMenu: util.showMenu,
+    createShortcut: util.createShortcut
+  })
+</script>

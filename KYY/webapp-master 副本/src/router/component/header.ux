@@ -1,0 +1,187 @@
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div class="headerMain">
+        <slot></slot>
+
+        <div class="div style1" if="{{locationstate == 'currentCity'}}" @click="tabsChangeSlider">
+            <text>{{ prop1  }}</text>
+            <image src="../../static/icon/xia.png" alt="" class="xia_img"></image>
+        </div>
+        <div class="div style1" if="{{locationstate == 'selectCity'}}" @click="tabsChangeSlider">
+            <text>{{ selectlocation.cityName  }}</text>
+            <image src="../../static/icon/xia.png" alt="" class="xia_img"></image>
+        </div>>
+        <div class="div style1" if="{{ !titleshow}}"><text>{{ prop1  }}</text></div>
+
+        
+        <!-- <div class="div style1" if="{{!prop1 && titleshow}}"><text>{{ prop1  }}</text></div>
+        <div class="div style1" if="{{!!prop1 && titleshow}}"  @click="tabsChangeSlider"><text>{{ prop1  }}</text></div> -->
+
+        <div class="div style2" if="{{title}}" ><text lines="1" text-overflow="ellipsis" style="width: 100%; text-align: center;">{{title}}</text></div>
+        <div class="div style2" if="{{!title}}" ><text></text></div>
+
+        <div class="div style3" if="{{menu == 'menu'}}" @click="toApp"><text>生成APP到桌面</text></div>
+        <div class="div style3 padd_right_30" 
+            elif="{{menu == 'close'}}" style="justify-content: flex-end;flex-direction: row;"
+            @click="tabsChangeBack"
+            >
+            <image src="../../../static/icon/1111.png" alt="" class="closeImg" />
+        </div>
+        <div class="div style3" else></div>
+    </div>
+</template>
+
+<script>
+    import shortcut from '@system.shortcut'
+    import prompt from '@system.prompt'
+    import router from '@system.router';
+
+    export default {
+        props: [
+            'prop1',
+            'menu',
+            'title',
+            'showback',
+            'titleshow', // 该对象如果没有传， 左边不显示 ，因此外界必须传入 true 才显现 左边地点控件
+            'locationstate',
+            'selectlocation'
+        ],
+        data: {},
+        tabsChangeBack(e) {
+            router.back()
+        },
+        onInit() {
+            // this.toApp()
+        },
+        tabsChangeSlider(e) {
+            router.push({
+                uri: 'router/component/slider',
+                params: {
+                    testId: '1'
+                }
+            })
+        },
+
+        // 生成 APP
+        toApp() {
+            shortcut.install({
+                // 创建图标成功，进行结果判断
+                success: (ret) => {
+                    if (ret) {
+                        prompt.showToast({
+                            message:'已创建',
+                            duration:0
+                        }); 
+                    } else {
+                        prompt.showToast({
+                            message:'未创建',
+                            duration:0
+                        }); 
+                    }
+                },
+                fail: (errmsg, errcode) => {
+                    // 创建图标失败
+                    prompt.showToast({message: 'error: 创建图标失败' + errcode + '---' + errmsg})
+                },
+                complete: () => {
+                    // 创建图标完成
+                    // prompt.showToast({message: 'complete 创建图标完成'})
+                }
+            })
+
+
+
+            // shortcut.hasInstalled({
+            //         success: (ret) => {
+            //             // 获取创建状态成功，进行创建状态的判断
+            //             if (ret) {
+            //                 prompt.showToast({
+            //                     message:'已经创建',
+            //                     duration:0
+            //                 }); 
+            //             } else {
+            //                 prompt.showToast({
+            //                     message:'未创建',
+            //                     duration:0
+            //                 }); 
+            //             }
+            //         },
+            //         fail: () => {
+            //             // 获取创建状态失败
+            //             // prompt.showToast({
+            //             //     message: '获取失败',
+            //             //     duration: 0
+            //             // });
+            //         },
+            //         complete: () => {
+            //             // 获取创建状态完成 这个不管失败成功都会回调
+            //             // prompt.showToast({
+            //             //     message: '获取创建状态完成',
+            //             //     duration: 0
+            //             // });
+            //         }
+            //     }
+            // );
+        },
+    }
+</script>
+
+<style>
+    .closeImg{
+        width: 40px;
+        height: 40px;
+    }
+    .headerMain{
+        height: 100px;
+        width: 100%;
+        position:fixed;
+        top: 0;
+        left: 0;
+        background-color: #FBFBFB;
+        flex-direction: row;
+        border-bottom-color: #DDDDDD;
+        border-bottom-width: 1px;
+    }
+    .style1{
+        width: 190px;
+        justify-content: flex-start;
+        padding-left: 30px;
+    }
+    .xia_img{
+        width: 18px;
+        height: 12px;
+        margin-top: 46px;
+        margin-left: 16px;
+    }
+
+    .style1 text{
+        color: #2F3540;
+        font-size: 30px;
+    }
+    .style2{
+        justify-content: center;
+        align-items:center;
+        flex:1;
+        
+    }
+    .style2 text{
+        /* align-self:center; */
+        font-size: 32px;
+        color: #2F3540;
+        font-weight:bold;
+        width: 100%;
+        text-align: center;
+    }
+    .style3{
+        justify-content: center;
+        flex-direction: column;
+        align-items:center;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+    }
+    .padd_right_30{
+        padding-right: 30px;
+    }
+</style>
+

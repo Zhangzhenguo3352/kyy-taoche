@@ -1,0 +1,52 @@
+{
+  "package": "com.ucarQyy.app",
+  "name": "淘车二手车",
+  "versionName": "1.0.0",
+  "versionCode": "1",
+  "minPlatformVersion": "101",
+  "icon": "/Common/logo.png",
+  "features": [
+    { "name": "system.prompt" },
+    { "name": "system.router" },
+    { "name": "system.shortcut" },
+    {"name": "system.webview"},
+    {"name": "system.fetch" },
+    {"name": "system.geolocation"},
+    {"name": "system.storage"},
+    {"name": "system.shortcut"},
+    {"name": "system.device"}
+  ],
+  "permissions": [
+    { "origin": "*" }
+  ],
+  "config": {
+    "logLevel": "off",
+    "designWidth": 750
+  },
+  "router": {
+    "entry": "router/page",
+    "pages": {
+      "router/page": {
+        "component": "index"
+      },
+      "router/component/slider": {
+        "component": "index"
+      },
+      "router/link_view": {
+        "component": "index"
+      }
+    }
+  },
+  "display": {
+    "titleBarBackgroundColor": "#414141",
+    "titleBarTextColor": "#FBFBFB",
+    "menu": false,
+    "titleBar": false,
+    "pages": {
+      "router/page": {
+        "menu": false,
+        "titleBar":false
+      }
+    }
+  }
+}

@@ -1,0 +1,678 @@
+
+<!-- 首页 -->
+<import name="header" src="../../router/component/header"></import> 
+<import name="loadmore" src="../../router/component/loadmore"></import>
+<import name="initmodel"  src="../../router/component/initmodel"></import>
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div style="flex-direction: column;margin-top:88px" class="me"  >
+        <!-- banner -->
+        <div class="banner" @click="goBuyCarPage(2)">
+            <image src="../../static/banner0.png" alt="图片加载失败" resize-mode="contain"></image>   
+        </div>
+        <!-- 两个按钮 -->
+        <div class="home_btn_box">
+            <div class="home_btn" @click="goBuyCarPage(1)">
+                <div class="btn"><text>我要买车</text></div>
+            </div>
+            <div class="home_btn" @click="goBuyCarPage(2)">
+                <div class="btn"><text>快速卖车</text></div>
+            </div>
+        </div>
+        <!-- 免费估价 -->
+        <div class="price_box" @click="goBuyCarPage(3)">
+            <div class="price"><text>免费估价</text></div>
+        </div>
+        <!-- 车型 -->
+        <div class="chexing_list_box paddtop20">
+            <div class="list">
+                <div class="box" @click="clickCar1(da,'car')" for="(i,da) in defaultHome">
+                    <image src="{{da.url}}" alt="" /><text>{{da.name}}</text>
+                </div>
+                <div class="box" @click="clickCar1('more')"><image src="../../static/checing/more.png" alt="" /><text>更多</text></div>
+            </div>
+        </div>
+        <!-- 不同大小， 用途车 -->
+        <div class="chexing_list_box">
+            <div class="list">
+                <div class="box" @click="clickCar1(D, 'filter')" for="( index, D) in carFilterData"><text>{{D.name}}</text></div>
+            </div>
+        </div>
+        <!-- 免费估价 -->
+        <div class="price_box2 paddtop20" @click="clickCar1('all')">
+            <div class="price rightjiao"><text>查看全部{{propsmaskshow}}</text><image src="../../static/icon/img3.png" alt="" /></div>
+        </div>
+        <div class="heig40"></div>
+        <div class="heig20 bjColor0"></div>
+        <!-- 二手车推荐 -->
+        <div class="recommend">
+            <text>二手车推荐</text>
+        </div>
+        <!-- 车 1 -->
+        <div class="carUl ul_one">
+            <div class="carUlMain">
+                <div class="div left" @click="clickCar1(taocheP, 'filter', '淘车认证车' )">
+                    <div class="main">
+                        <div class="box">
+                            <div class="title">
+                                <text class="text1">淘车认证车</text>
+                                <text class="text2" style="padding-top:4px;">1年或3万公里保修</text>
+                            </div>
+                            <div class="line"></div>    
+                        </div>
+                        <div class="imgBox">
+                            <image src="../../static/1.png" alt="" />
+                        </div>
+                    </div>
+                </div>
+                <div class="div right" @click="clickCar1(brandCertification, 'filter')">
+                    <div class="main">
+                        <div class="box">
+                            <div class="title" style="padding-left: 30px;">
+                                <text class="text1">品牌认证车</text>
+                                <text class="text2" style="padding-top:4px;">原厂认证官方质保</text>
+                            </div>
+                        </div>
+                        <div class="imgBox">
+                            <image src="../../static/2.png" alt="" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 车 2 -->
+        <div class="carUl ul_two">
+            <div class="carUlMain ul_two_box">
+                <div class="div" @click="clickCar1('suvData', suvData)">
+                    <image src="../../static/3.png" alt="" />
+                    <text class="text1" >城市SUV</text>
+                    <text class="text2" style="padding-top:4px;">家庭实用之选</text>
+                </div>
+                <div class="div" @click="clickCar1( 'objData', objData)">
+                    <image src="../../static/4.png" alt="" />
+                    <text class="text1" style="padding-left:10px;">练手车</text>
+                    <text class="text2" style="padding-top:4px;padding-left:10px;">碰碰不心疼</text>
+                </div>
+                <div class="div" @click="clickCar1('newCarData', newCarData)">
+                    <image src="../../static/5.png" alt="" />
+                    <text class="text1" style="padding-left:10px;">准新车</text>
+                    <text class="text2" style="padding-top:4px;padding-left:10px;">2年1万公里以内</text>
+                </div>
+            </div>
+        </div>
+        <!-- 推荐车源 -->
+        <!-- show="{{listDataCarSource && listDataCarSource.length != 0 ? true : false}}" -->
+        <div class="recommend2" show="{{showRecommend}}">
+            <text>推荐车源</text>
+        </div>
+        <!-- 车列表 -->
+        <div class="loadmore_list" >
+            <div class="carUlMain" style="margin-top: -36px;">
+                <loadmore></loadmore>
+            </div>
+        </div>
+        <!-- 全局提醒用户 model -->
+        <initmodel 
+            loading-text="正在加载..." 
+            loading-image="../../Template/loading.png" 
+            loading-show="{{isLoading}}" 
+            propsmaskshow="{{propsmaskshow}}"
+            if="{{!!propsmaskshow}}"
+        >
+            <div style="" class="model_init_box">
+                <div show="{{loadingShow}}" class="loadPos">
+                    <image src="../../static/person.png" alt="" class="loadPos_image"></image>
+                    <text style="font-size: 32px;color: #FF6402;">车辆估值 信我没错</text>
+                    <text class="text2model style">通过大数据，实时为您精准报价</text>
+                    <text class="text3model style">让淘车告诉您爱车的价值</text>
+                    <div class="btnja" @click="goLink('http://m.taoche.com/kuaiyingyong/nissan/')"><text>免费估价</text></div>
+                </div>
+            </div>
+        </initmodel>
+    </div>
+</template>
+
+<script>
+    import device from '@system.device'
+    import router from '@system.router';
+    import fetch from '@system.fetch'
+    import prompt from '@system.prompt'
+    import storage from '@system.storage'
+    import geolocation from '@system.geolocation'
+    import { inItdata } from '../../util/dataX.js'
+    import { CC2PY } from '../../util/pinyin.js'
+    import { connect } from 'quickapp-redux'
+    import { defaultHome, carFilterData, objData, newCarData, suvData, taocheP, brandCertification} from '../../util/defaultCarData.js'
+    import { ajaxFn, getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, idIsFn } from '../../util/util.js'
+    const home = {
+        props: [
+            'location',
+            'city', // 当前城市
+            'locationstate',
+            'selectlocation',
+            'h'
+        ],
+        data: {
+            res: [],
+            propsmaskshow: '',
+            objData,
+            newCarData,
+            suvData,
+            taocheP,
+            brandCertification,
+            https: '',
+            showRecommend: false,
+            defaultHome,
+            carFilterData,
+            labeldata: [],
+            filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]
+        },
+        // 去买车页面
+        goBuyCarPage(index) {
+            this.$dispatch('goBuyCarPage', { index})
+            this.$broadcast('showBuyCarTop')
+            this.$dispatch('showBuyCarTop', { })
+            this.$dispatch('scrolltop')
+            this.dispatch({ type: 'set', data: {PageIndex:1, moreShow: 3} })
+        },
+        // 免费估价
+        goLink(uri) {
+            router.push({
+                uri
+            })
+        },
+        onInit() {},
+        addLabelData(item, type) {
+            const json = {}
+            json.title = item.title
+            json.data = {
+                selectName : item.name
+            }
+            json.index = item.num
+            json.type = item.type
+            json.params = item.params
+            this.state.labeldata.push(json)
+            if(type == 'for') {
+                if( item.title == '价格' ) {
+                    this.dispatch({ type: 'set', data: {selectlistindex: 3, input1value: '', input2value: ''} })
+                }else if(item.title == '筛选') {
+                    this.dispatch({ type: 'set', data: { input1value: '', input2value: '', filterdata: item.arr} })
+                } else {
+                    this.dispatch({ type: 'set', data: { filterdata: item.arr} })
+                }
+            } else {
+                if( item.title == '价格' ) {
+                    this.dispatch({ type: 'set', data: {selectlistindex: item.n, input1value: '', input2value: ''} })
+                } else {
+                    this.dispatch({ type: 'set', data: {selectlistindex: 0, input1value: '', input2value: '', filterdata: item.arr} })
+                }
+            }
+            return this.state.labeldata
+        },
+        pushLableFn(arr1, arr2) {
+            let arr = []
+            let json = {}
+            let A = []
+            if(arr2.title == 'home筛选_练手车') {
+                for(var i = 0;i < arr2.type.length; i++) {
+                    let json = {}
+                    json.title = arr2.type[i].title
+                    json.data = {
+                        selectName : arr2.type[i].name
+                    }
+                    json.index = arr2.type[i].num
+                    json.type = arr2.type[i].type
+                    json.params = arr2.type[i].params
+                    A.push(json)
+                }
+                arr[0] = arr1
+                arr[1] = A[0]
+                arr[2] = A[1]
+            } else {
+                json.title = arr2.title
+                json.data = {
+                    selectName : arr2.name
+                }
+                json.index = arr2.num
+                json.type = arr2.type
+                json.params = arr2.params
+                arr[0] = arr1
+                arr[1] = json 
+            }
+            this.dispatch({ type: 'set', data: {labeldata: arr} })
+            this.goBuyCarPage(1)
+        },
+        homeLabelShow(arr, type) {
+            let H
+            for(var i = 0; i < arr.length; i++) {
+                if(arr[i].title == '筛选' && arr[i].data.selectName == '淘车认证') {
+                    let obj = {"title":"筛选","data":{"selectName":"淘车认证"},"id":1,"index":1,"type":"nflag","params":"3"}
+                    this.pushLableFn(obj, type)
+                    H = true
+                } else if(arr[i].title == '淘车认证' && arr[i].data.selectName == '淘车认证') {
+                    let obj = {"title":"淘车认证","data":{"selectName":"淘车认证"},"id":1,"index":1,"type":"nflag","params":"3"}
+                    this.pushLableFn(obj, type)
+                    H = true
+                } else if(arr[i].title == '筛选' && arr[i].data.selectName == '淘车认证') {
+                    let obj = {"title":"筛选","data":{"selectName":"淘车认证"},"id":1,"index":1,"type":"nflag","params":"3"}
+                    this.pushLableFn(obj, type)
+                    H = true
+                } else if(arr[i].title == '筛选' && arr[i].data.selectName == '品牌认证车') {
+                    let obj = {"title":"筛选","data":{"selectName":"品牌认证车"},"id":1,"index":2,"type":"nflag","params":"2"}
+                    this.pushLableFn(obj, type)
+                    H = true
+                } else if(arr[i].title == '筛选' && arr[i].data.selectName == '品牌认证') {
+                    let obj = {"title":"筛选","data":{"selectName":"品牌认证"},"id":1,"index":2,"type":"nflag","params":"2"}
+                    this.pushLableFn(obj, type)
+                    H = true
+                } 
+            }
+            return H;
+        },
+        
+        clearLabelClick() {
+            this.dispatch({ type: 'set', data: { input1value: '', input2value: ''} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+        },
+        clearLabelClick2() {
+            this.dispatch({ type: 'set', data: {selectlistindex: 0, input1value: '', input2value: ''} })
+            this.dispatch({ type: 'set', data: {headerArr: this.state.headerArr} })
+            this.dispatch({ type: 'set', data: {labeldata: []} })
+            this.dispatch({ type: 'set', data: {filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+        },
+        clickCar1(item, type) {
+            this.$dispatch('scrolltop')
+            this.dispatch({ type: 'set', data: {isrefresh: true,moreShow : 3, PageIndex:1} })
+            if(type == 'car' || type == 'filter') {
+                this.dispatch({ type: 'set', data: {labeldata: []} })
+                if(item.title == 'home筛选_练手车') {
+                    let arr = []
+                    for(var i = 0; i < item.type.length; i++) {
+                        arr = this.addLabelData(item.type[i], 'for')
+                    }
+                    this.dispatch({ type: 'set', data: {labeldata:  arr} })
+                } else if(type == 'car' || item.title == '价格') {
+                    let obj = this.addLabelData(item, '')
+                    this.dispatch({ type: 'set', data: {labeldata: obj } })
+                    this.dispatch({ type: 'set', data: {filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]} })
+                } else {
+                    let obj = this.addLabelData(item, '')
+                    this.dispatch({ type: 'set', data: {labeldata: obj } })
+                }
+                this.goBuyCarPage(1)
+            } else if(item == 'all') {
+                this.clearLabelClick2()
+                this.goBuyCarPage(1)
+            } else if(item == 'more') {
+                this.dispatch({ type: 'set', data: {labeldata: []} })
+                router.push({
+                    uri: 'router/brandpage',
+                    params: {
+                        key: '2',
+                    }
+                })
+            } else if(item == 'newCarData' || item == 'objData' || item == 'suvData') {
+                this.dispatch({ type: 'set', data: {labeldata: []} })
+                if(item == 'objData') {
+                    let arr = []
+                    for(var i = 0; i < type.type.length; i++) {
+                        arr = this.addLabelData(type.type[i], 'for')
+                    }
+                    this.dispatch({ type: 'set', data: {labeldata:  arr} })
+                    this.goBuyCarPage(1)
+                } else {
+                    this.dispatch({ type: 'set', data: {labeldata:  this.addLabelData(type)} })
+                    this.goBuyCarPage(1)
+                }
+            } else if(type == 'top'){
+                this.dispatch({ type: 'set', data: {labeldata: []} })
+                
+                this.dispatch({ type: 'set', data: {labeldata:  this.addLabelData(item)} })
+            }
+        },
+        // 估价弹窗
+        remindModle() {
+            let time = new Date().getTime()
+            storage_get(storage, 'time', prompt, (data) => {
+                let jsonParse = JSON.parse(data)
+                if(data) {
+                    storage_get(storage, 'number', prompt, (num) => {
+                        if( String(time - jsonParse.time) < '604800000' ) { // 大于7天
+                            let data1 = jsonParse.number
+                            let data2 = num
+                            if(jsonParse.number == num) { // 两个数字相等 ， 准备弹框   1 和 1
+                                let json = {};
+                                json.number = jsonParse.number
+                                json.time = jsonParse.time
+                                this.setTimeFn(json)
+                                this.propsmaskshow = 'show'
+                                jsonParse.number++
+                                this.setNumber(jsonParse.number)
+                            }
+                        } else {
+                            let json = {};
+                            json.number = jsonParse.number
+                            this.setTimeFn(json)
+                            jsonParse.number++
+                            this.setNumber(jsonParse.number)
+                        }
+                    })
+                    // if(jsonParse.number) {
+
+                    // }
+                    // if( String(time - data) < '604800000' ) { // 大于7天
+                    //     this.propsmaskshow = 'show'
+                    // } 
+                } else {
+                    let json = {};
+                    json.number = 1
+                    json.time = time
+                    this.setTimeFn(json)
+                    this.setNumber(1)
+                    this.propsmaskshow = 'show'
+                }
+            })
+            let url = "https://www.sojson.com/open/api/weather/json.shtml?city=" + '北京'
+            ajaxFn(fetch, url, {}).then((cityData) => {
+                if(cityData.code == '200') {
+                    if( false ) { // model 框
+                        this.propsmaskshow = 'show'
+                    }
+                } else {
+                    prompt.showToast({
+                        message:'估价获取失败',
+                        duration:0
+                    }); 
+                }
+            })
+        },
+        // 设置第一次， 时间戳
+        setTimeFn(data) {
+            storage_set(storage, 'time', data, prompt, () =>{}) // 存储达到 storage 里面
+        },
+        // 作比较 7天弹一次
+        setNumber(data) {
+            storage_set(storage, 'number', data, prompt, () =>{}) // 存储达到 storage 里面
+        }
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.labeldata = dataPatch.state.labeldata
+            component.selectlistindex = dataPatch.state.selectlistindex
+            component.filterdata = dataPatch.state.filterdata
+            component.showRecommend = dataPatch.state.showRecommend
+        }
+    }
+    export default connect( mapStateToData, fn )(home)
+</script>
+<style>
+    .model_init_box{
+        align-items: center;
+        width: 100%;height: 100%;
+        flex-direction:column  ;
+        justify-content: flex-end;
+    }
+    .btnja{
+        height: 90px;
+        width: 480px;
+        justify-content: center;
+        align-items: center;
+        background-color: #FF6402;
+        border-radius: 5px;
+        margin-top: 42px;
+    }
+    .btnja text{
+        color: #FFFFFF;
+        font-size: 32px;
+    }
+    .loadPos_image{
+        height: 278px;
+        width: 278px;
+        align-items:center;
+        margin-top: 40px;
+        margin-bottom: 30px;
+    }
+    .loadPos{
+        width: 560px;
+        height: 712px;
+        margin-bottom:298px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .text2model{
+        margin-top: 62px;
+    }
+    .text3model{
+        line-height: 40px;
+    }
+    .loadPos .style{
+        font-size: 26px;
+        color: #666666;
+    }
+    /* 列表 */
+    .loadmore_list{
+        width: 100%;
+    }
+    .carUl{
+        flex-direction: row;
+        width: 100%;
+        border-bottom: 1px solid #E5E5E5;
+    }
+    .ul_one .left .title{
+        width: 98%;
+    }
+    .ul_one .left .box{
+        width: 100%;
+        /* position: relative; */
+    }
+
+    .carUlMain{
+        margin-right: 30px;
+        margin-left: 30px;
+    }
+    .ul_one .div .imgBox{
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .ul_one .div .main image{
+        width: 220px;
+        height: 124px;
+        /* align-self: flex-end; */
+        margin-right: 70px;
+    }
+    .ul_one .div .main{
+        flex-direction: column;
+        width: 100%;
+    }
+    .ul_one .left .line{
+        height: 60px;
+        width: 1px;
+        background-color: #E5E5E5;
+        /* align-self: flex-end; */
+        
+    }
+    .ul_one .div{
+        height: 226px;
+        width: 50%;
+        border-bottom-width: 1px;
+        border-bottom-color: #f0f0f0;
+    }
+    
+    .ul_one .title{
+        height: 82px;
+        flex-direction: column;
+    }
+    .text1{
+        font-size: 32px;
+        color: #2F3540;
+    }
+    .text2{
+        font-size: 24px;
+        color: #818D9A;
+        opacity: 0.9;
+    }
+    .ul_two .div{
+        width: 33.3%;
+        height: 242px;
+    }
+    .ul_two image{
+        width: 200px;
+        height: 140px;
+        margin-left: 10px;
+    }
+    .ul_two text{
+        padding-left: 10px;
+    }
+    .ul_two_box .div{
+        flex-direction: column;
+        margin-top: 30px;
+        border-bottom-width: 1px;
+        border-bottom-color: #f0f0f0;
+    }
+    /* 二手车推荐 */
+    .recommend{
+        height: 120px;
+        width: 100%;
+        background-color: #FFFFFF;
+        padding-left: 30px;
+        line-height: 120px;
+    }
+    .recommend text{
+        font-size: 36px;
+        color: #2F3540;
+    }
+    /* 猜你喜欢 */
+    .recommend2{
+        height: 126px;
+        width: 100%;
+        background-color: #FFFFFF;
+        padding-left: 30px;
+        line-height: 126px;
+    }
+    .recommend2 text{
+        font-size: 36px;
+        color: #2F3540;
+    }
+    .recommend3{
+        height: 0px;
+        width: 100%;
+    }
+    .bjColor0{
+        background-color: #F8F8F8;
+    }
+    .heig20{
+        height: 20px;
+        width: 100%;
+    }
+    .heig40{
+        height: 40px;
+        width: 100%;
+    }
+    .price_box2{
+        justify-content: center;
+    }
+    .price_box2 .price text{
+        font-size: 30px;
+        color: #FFFFFF;
+    }
+    .price_box2 .price{
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 670px;
+        height: 74px;
+    }
+    .price_box2 image{
+        height: 20px;
+        width: 12px;
+        margin-top: 30px;
+        margin-left: 14px;
+    }
+    
+    .paddtop20{padding-top:20px;}
+    /* 车型 */
+    .chexing_list_box{
+        width: 100%;
+    }
+    .chexing_list_box .list{
+        margin-right: 30px;
+        margin-left: 30px;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .chexing_list_box .list .box{
+        width: 25%;
+        justify-content: center;
+        height: 100px;
+    }
+    .chexing_list_box .list .box image{
+        height: 60px;
+        width: 60px;
+        margin-top: 20px;
+        margin-right: 12px;
+    }
+    .chexing_list_box .list .box text{
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .price_box{
+        justify-content: center;
+    }
+    .price_box .price text{
+        font-size: 32px;
+        color: #FF6402;
+    }
+    .price_box .price{
+        background-color: #FFF9F5;
+        border: 1px solid #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 690px;
+        height: 90px;
+    }
+    .home_btn_box{
+        flex-direction: row;
+        margin-left: 14px;
+        margin-right: 14px;
+    }
+    .home_btn_box .home_btn{
+        width:50%;
+        justify-content: center;
+        height: 150px;
+    }
+    .home_btn_box .home_btn .btn{
+        margin-top: 30px;
+        height: 90px;
+        width: 330px;
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+    }
+    .home_btn_box .home_btn .btn text{
+        color: #ffffff;
+        font-size: 32px;
+    }
+    /* .banner{
+        height: 240px;
+        width: 750px;
+    }*/
+    .banner image{
+        width: 750px;
+        height: 240px;
+    } 
+    .me{
+        display: flex;
+        flex:1;
+        height: 100%;
+        width: 100%;
+    }
+</style>

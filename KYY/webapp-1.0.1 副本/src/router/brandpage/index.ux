@@ -1,0 +1,978 @@
+<!-- 车型控件 -->
+<import name="header" src="../component/header"></import>
+<import name="textModel" src="../component/textModel"></import>
+<template>
+    <stack>
+        <div class="box-Main demo-page" style="flex-direction: column;">
+            <header title="{{title}}" titleshow="{{true}}" prop1="{{false}}" show="{{true}}">
+                <div class="div style0"   @click="backFn" style="width: 190px;">
+                    <image src="../../static/icon/back.png" alt="" />
+                </div>
+            </header>
+            <div class="flexRight">
+                <div for="letter" 
+                    @click="letterclick($item, $idx, 'a')" 
+                    class="divtext"
+                    @longpress="letterclick($item, $idx)"
+                >
+                    <text type="{{$idx}}">{{$item}}</text>
+                </div>
+            </div>
+            <textModel textmodel="{{textmodel}}" if="{{showModel}}"></textModel>
+            <stack style="height: 100%;padding-top:100px;width: 100%;">
+                <list id="list" style="flex-direction:column;columns: 1;" @scroll="scrollEvent" class="list">
+                    <block for="item in listDatabrandpage">
+                        <list-item type="{{$idx}}" style="flex-direction:column;" ondisappear="showMask(item.FirstChar, $idx, 'b')" onappear="hideMask(item.FirstChar, $idx, 'b')">
+                            <!-- #  部分 -->
+                            <div style="margin-right: 48px;" show="{{item.FirstChar == '#' ? true : false}}">
+                                <div style="flex-direction:column;" class="">
+                                    <!-- 当前定位城市 -->
+                                    <text class="titleBOx paddR allCar" style="height: 104px;margin-left: 30px;" if="{{key == 2}}" @click="allCarGet">全部品牌</text>
+                                    
+                                    <!-- 直辖市 -->
+                                    <text class="titleBOx paddL paddR" style="height: 102px;">热门品牌</text>
+                                    <!-- 具体 直辖市 -->
+                                    <div class="big paddL warp">
+                                        <div @click="selectCity2('data', item.params, item)" style="flex-direction:column;width: 25%;height: 120px;" class="center" for="(i, item) in defaultCarData">
+                                            <image class="tab-icon" src="{{item.url}}" resize-mode="contain"></image>
+                                            <text >{{item.name}}</text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 下面的部分 -->
+                            <div style="flex-direction:column;" class="">
+                                <text class="paddL paddR bj1Color" show="{{item.FirstChar == '#' ? false : true}}">{{item.FirstChar}}</text>
+                                <div for="(i, k) in item.UcarMakeItemList" class="setImage">
+                                    <image class="tab-icon" src="{{k.Image}}" resize-mode="contain"></image>
+                                    <div style="flex-direction:column;">
+                                        <text 
+                                            class="titleBOx paddL paddR borTop" 
+                                            style="height: 102px; border-top-color: {{0 == i ? '#ffffff' : '#eeeeee'}}" 
+                                            @click="selectCity(item.children, k.ID, k)"
+                                        >
+                                            {{k.Name}}
+                                        </text>
+                                    </div>
+                                </div>
+                            </div>
+                        </list-item>
+                    </block>
+                </list>
+                <!-- 列表中的吸顶元素对应的Mask -->
+                <div show="{{titleShow && titleShow2}}" style="flex-grow: 1;" >
+                    <div class="height-50 bg-red leftText paddL">
+                        <text>{{text}}</text>
+                    </div>
+                </div>
+            </stack>
+        </div>
+        <!-- 抽屉组件 -->
+        <div if="{{drawerShow == 2}}">
+            <stack>
+                <div class="demo-page-right opacity05Show" style="column:1; " @click="hideClick(false)"></div>
+                <div class="demo-page-right maskBox opacity05Show2" style="column:1; width: 750px;align-items: flex-start " @click="hideClick(false)">
+                        <div style="flex-direction:column;justify-content: center;align-items:center;margin-left: 80px;">
+                            <image src="../../static/icon/carBack.png" alt="" />
+                            <text >点</text>
+                            <text >击</text>
+                            <text>收</text>
+                            <text >起</text>    
+                        </div>
+                    </div>
+                <list id="listDrawer" class="demo-page-right2 transform {{drawerShow ? 'transformShow' : 'transformHide'}}" @scroll="scrollEvent2">
+                    <block >
+                        <list-item  type="loadMore05">
+                            <div class="list_box" >
+                                <image class="tab-icon" src="{{modelData.Image}}"  resize-mode="contain"></image>
+                                <text style="margin-left: 30px;">{{modelData.Name}}</text>
+                            </div>
+                        </list-item>
+                        <list-item if="{{key == 2}}" type="loadMore06" >
+                            <div class="list_box" @click="anyCar(2)">
+                                <text>不限车型</text>
+                            </div>
+                        </list-item>
+
+                        <list-item  type="{{i}}" for="(i, data) in modelData.UcarModelList" style="flex-direction:column;">
+                            <div class="list_box" text-overflow="ellipsis" style="height: 56px;background-color: #F8F8F8;">
+                                <text style="font-weight:bold;font-size: 32px;">{{data.Name}}</text>
+                            </div>        
+                            <div class="list_box" @click="clickRightCity(data, D)" for="(j, D) in data.UcarModelItemList" type="{{j}}"><text>{{D.Name}}</text></div>
+                        </list-item>
+                    </block>
+                </list>
+            </stack>
+        </div>
+        <div elif="{{drawerShow == 3}}">
+            <stack>
+                <div class="demo-page-right opacity05Show" style="column:1; " @click="hideClick(false)"></div>
+                <list id="listDrawer" class="demo-page-right2 transform transformShow750" @scroll="scrollEvent2">
+                
+                    <block >
+                        <list-item  type="loadMore01">
+                            <div class="list_box" >
+                                <image class="tab-icon" src="{{modelData.Image}}"  resize-mode="contain"></image>
+                                <text style="margin-left: 30px;">{{modelData.Name}}</text>
+                            </div>
+                        </list-item>
+                        <list-item if="{{key == 2}}" type="loadMore02">
+                            <div class="list_box" @click="anyCar(3)">
+                                <text>不限车型</text>
+                            </div>
+                        </list-item>
+                        <list-item  type="{{i}}" for="(i, data) in carModel3Arr" style="flex-direction:column;"  if="{{!more}}">
+                            <div class="list_box" text-overflow="ellipsis" style="height: 56px;background-color: #F8F8F8;">
+                                <text style="font-weight:bold;font-size: 32px;">{{data.Name}}</text>
+                            </div>        
+                            <div class="list_box" @click="clickRightCity750(data, D)" for="(j, D) in data.CarInfoList" type="{{j}}"><text>{{D.CarName}}</text></div>
+                        </list-item>
+                        <list-item show="{{more}}" type="loadMore04">
+                            <div class="list_boxprogress" >
+                                <progress type="circular"></progress>
+                                <text style="margin-left: 20px">加载...</text>
+                            </div>
+                        </list-item>
+                    </block>
+                </list>
+            </stack>
+        </div>
+    </stack>
+</template>
+
+<script>
+    import router from '@system.router';
+    import prompt from '@system.prompt'
+    import fetch from '@system.fetch'
+    import storage from '@system.storage'
+    import geolocation from '@system.geolocation'
+    import { connect } from 'quickapp-redux'
+    import { autoGovernment, citys } from '../../util/areaData.js'
+    import { provinces } from '../../util/province.js'
+    import { defaultCarData, headerArrModel } from '../../util/defaultCarData.js'
+    import { inItdata } from '../../util/dataX.js'
+    import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, idIsFn2, idIsFn, rowListHeaderData, utlSpliceFn } from '../../util/util.js'
+
+    const brandpage = {
+        data: {
+            title: '选择品牌',
+            letter:'热ABCDFGHJKLMNOPQRSTWXYZ'.split(''),
+            textmodel: '',
+            showModel: false,
+            list: provinces,
+            listDatabrandpage: [],
+            name1: '',
+            name2: '',
+            home1: '',
+            home2: '',
+            UcarModelList: [],
+            isrefresh: '',
+            modelData: '',
+            text:'#',
+            num: 0,
+            scrollTrue: true,
+            initBok: false,
+            titleShow: false,
+            titleShow2: true,
+            b : true,
+            timer: null,
+            cityList: [],
+            tableCurrent:'',
+            city: '',
+            drawerShow: false,
+            currnetData: null,
+            currentIndex: '',
+            location: '',
+            rotate: false, // 刷新图标 按钮 是否旋转
+            keyType: '',
+            defaultCarData,
+            carModelData: {
+                name1: {},
+                name2: {},
+                name3: {}
+            }, // 车型初始化数据
+            homeCarModelData: {
+                name1: {},
+                name2: {},
+                name3: {}
+            }, // 车型初始化数据
+            carModel3Arr: [],
+            more: true
+        },
+        onInit() {},
+        anyCar(modelType) {
+            if(this.key == 2) {
+                this.dispatch({ type: 'set', data: { currentIndex: 1} })
+            } else if(this.key == 3) {
+                if(modelType == 2) {
+                    this.state.carModelData.name1 = this.name1
+                    this.state.carModelData.name2 = {}
+                    this.state.carModelData.name3 = {}
+                } else if(modelType == 3) {
+                    this.state.carModelData.name1 = this.name1
+                    this.state.carModelData.name2 = this.name2
+                    this.state.carModelData.name3 = {}
+                }
+                this.dispatch({ type: 'set', data: { carModelData: this.state.carModelData} })
+            }
+            this.buyCarListData2()
+        },
+        titleSet(){
+            if(this.drawerShow == 3) {
+                this.title = '选择车型'
+            } else if(this.drawerShow == 2){
+                this.title = '选择品牌'
+            } 
+        },
+        backType() {
+            this.titleSet()
+            if(this.drawerShow == 3) {
+                this.drawerShow = 2
+                return true
+            } else if(this.drawerShow == 2){
+                this.drawerShow = false
+                return true
+            } else {
+                return false
+            }
+        },
+        // 点击返回
+        backFn(e) {
+            if(!this.backType()) router.back()
+        },
+        // 物理返回键
+        onBackPress(e) { 
+            return this.backType()
+        },
+        // 对象里面 的id 是哪个 索引
+        idIsFn(name) {
+            let timer;
+            for(var i = 0; i< this.state.labeldata.length; i++) {
+                if(this.state.labeldata[i].title == name) {
+                    timer = i
+                }
+            }
+            return timer;
+        },
+        setLableFn(title, ID, selectName, type) {
+            if(this.idIsFn(title) != undefined) {
+                const json2 = {}
+                json2.id = ID
+                json2.data = {
+                    selectName
+                }
+                json2.title = title
+                json2.type = type
+                json2.params = ID
+                let labeldataArr = this.state.labeldata.filter(item => 
+                                    item.title !== '品牌' && 
+                                    item.title !== '品牌2' )
+                let data1 =  [json2].concat(labeldataArr)
+                this.dispatch({ type: 'set', data: {labeldata: data1} })
+            } else {
+                const json2 = {}
+                json2.id = ID
+                json2.data = {
+                    selectName
+                }
+                json2.type = type
+                json2.params = ID
+                json2.title = title
+                this.state.labeldata.push(json2)
+                this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+            }
+        },
+        selectCity2(children, id, k){
+            let maxListData = this.state.listDatabrandpage
+            let { timer, maxrOW } = idIsFn2(`${k.name}`, this.state.listDatabrandpage)
+            let OBJECT = maxListData[maxrOW].UcarMakeItemList[timer]
+            this.selectCity('children', 'id', OBJECT)
+        },
+        // 选择城市
+        selectCity(children, id, k){
+            this.tableCurrent = this.state.title
+            this.title = '选择车型'
+            if(this.key == 3) {
+                this.drawerShow = 2
+                this.modelData = k
+                const json = {}
+                json.ID = k.ID
+                json.FirstChar = k.FirstChar
+                json.Name = k.Name
+                json.Country = k.Country
+                json.Image = k.Image
+                this.name1 = json
+                this.cityList = k.UcarModelList
+            } else {
+                this.drawerShow = 2
+                this.modelData = k
+                const json = {}
+                json.ID = k.ID
+                json.FirstChar = k.FirstChar
+                json.Name = k.Name
+                json.Country = k.Country
+                json.Image = k.Image
+                this.home1 = json
+                this.state.homeCarModelData.name1 = json
+                this.setLableFn('品牌', k.ID, k.Name, 'mbid')
+                this.cityList = k.UcarModelList
+            }
+        },
+        // 点击 抽屉里的 右侧城市
+        clickRightCity(item, D) {
+            if(this.key == 3) {
+                this.drawerShow = 3
+                const json = {}
+                json.ID = D.ID
+                json.Name = D.Name
+                json.Image = D.Image
+                this.name2 = json
+                this.title = '选择车款'
+                this.get3Car(D.ID)
+            } else {
+                const json = {}
+                json.ID = D.ID
+                json.Name = D.Name
+                json.Image = D.Image
+                this.home2 = json
+                this.state.homeCarModelData.name2 = json
+                this.setLableFn('品牌2', D.ID, D.Name, 'brandid')
+                this.dispatch({ type: 'set', data: { currentIndex: 1} })
+                this.dispatch({ type: 'set', data: {citySelectTop: 2} })
+                this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+                this.buyCarListData2()
+            }
+        },
+        clickRightCity750(item, D) {
+            const json = {}
+            json.ID = D.CarId
+            json.Name = D.CarName
+            json.Image = D.Image
+            json.paragraph = item
+            this.state.carModelData.name1 = this.name1
+            this.state.carModelData.name2 = this.name1
+            this.state.carModelData.name3 = json
+            this.dispatch({ type: 'set', data: { carModelData: this.state.carModelData} })
+            router.back()
+        },
+        get3Car(ID) {
+            let url = `${inItdata.http3Car}&v=${inItdata.v2}&brandid=${ID}&isgroup=0&imei=&action=GetBrandCarList&cid=${this.state.currnetData.cityId}`
+            console.log('get3Car url', url)
+            this.more = true
+            ajaxFn(fetch, url, {}).then((res) => { 
+                this.more = false
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    if(jsonParse.status == '100') {
+                        console.log('get3Car res', JSON.stringify(jsonParse.data))
+                        this.dispatch({ type: 'set', data: {carModel3Arr:jsonParse.data} })
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        }) 
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        // 设置 选中的城市 具体数据
+        selectCityFn(cityData) {
+            storage_set(storage, 'locationstate', cityData, prompt, () =>{}) // 存储达到 storage 里面
+        },
+        // 设置成 选中状态 存储在 storage 里面
+        setSelectState(v) {
+            this.selectCityFn('selectCity')
+            storage_set(storage, 'selectlocation', v, prompt, () =>{}) // 存储达到 storage 里面
+        },
+        // 点击当前城市
+        clickCurrentFn() {
+            this.setCityFn(this.city)
+            console.log('this.city', this.city.cityName)
+            this.selectCityFn('currentCity')
+            router.back()
+        },
+        // 设置当前城市
+        setCurrentCity() {
+            let v = {}
+                v.cityName = '全国'
+                v.cityId = '0'
+                this.city = v
+        },
+        // 刷新定位时 设置城市
+        setCityFn(cityData) {
+            this.city = cityData
+            console.log('cityData', cityData.cityId)
+            storage_set(storage, 'city', cityData, prompt, () =>{}) // 存储达到 storage 里面
+        },
+        addLabelData(item) {
+            if(this.key == 3) {
+                const json = {}
+                json.ID = item.params
+                json.Name = item.name
+                json.Image = item.url 
+                this.state.carModelData.name1 = json
+                this.state.carModelData.name2 = {}
+                this.state.carModelData.name3 = {}
+                this.dispatch({ type: 'set', data: { carModelData: this.state.carModelData} })
+                router.back()
+            } else {
+                this.setLableFn('品牌', item.params, item.name, 'mbid')
+                this.dispatch({ type: 'set', data: { currentIndex: 1} })
+                this.buyCarListData2()
+            }
+        },
+        // 后端 cooki
+        setCookie(cityId) {
+            let url = `http://apiwx.taoche.com/ajax/seth5cookie.ashx?cityId=${cityId}`
+            console.log('reslailai-index', url) 
+            ajaxFn(fetch, url, {}).then((res) => { 
+                console.log('res', res) 
+            })
+        },
+        // 点击 字母
+        letterclick(e, index, a) {
+            this.showModel = true;
+            this.textmodel = e
+            this.scrollEvent2()
+            this.$element('list').scrollTo({
+                index: index
+            });
+            this.timer = setTimeout(() => {
+                this.showModel = false;
+                clearTimeout(this.timer)
+            }, 500)
+        },
+        // 让 title 为 # 时 消失
+        titleShowFn( key ) {
+            if(key == '#') {
+                this.titleShow = false
+            } else {
+                this.titleShow = true
+            }
+        },
+        // 谁消失了
+        showMask (item, idx, b) { 
+            if(b == 'b') {
+                this.b = true
+                if(!this.scrollTrue) return; 
+                this.titleShow2 = true
+                this.text = this.letter[idx+1]
+                this.num = idx
+                this.titleShowFn(this.letter[idx+1])
+            } else {
+                this.b = false
+                this.titleShow2 = false
+            }
+        },
+        // list 滚动 事件
+        scrollEvent(e) { 
+            if(this.b) {
+                if(e.scrollY >= 0) { // 往下滚动
+                    this.scrollTrue = true
+                    this.initBok = false
+                } else { 
+                    this.scrollTrue = false
+                    this.initBok = true
+                }
+            }
+        },
+        // 谁出现了
+        hideMask (item, idx, b) {  
+            // 加载页面时，自动触发所有 的 元素， 因此过滤掉元素
+            if(b == 'b') {
+                this.b = true
+                if(!this.initBok) return
+                if(this.scrollTrue) return; 
+                this.titleShow2 = true
+                this.text = item
+                this.num = idx
+                this.titleShowFn(item)
+            } else {
+                this.b = false
+                this.titleShow2 = false
+            }
+        },
+        // 去除 抽屉 list 滚动式触发的方法
+        scrollEvent2() {
+            this.titleShow2 = false
+            this.scrollTrue = false
+            this.initBok = false
+            this.b = false
+        },
+        // 点击 半透明遮罩
+        hideClick() {
+            this.titleSet()
+            this.drawerShow = false
+        },
+        sortHeaderSet(D) {
+            if(this.state.currentRowlistdata.id != 0) {
+                let data = Array.from(new Set(D.concat([1])))
+                this.dispatch({ type: 'set', data: {headerArr: data} })
+            } else {
+                if(D.indexOf(1) != -1 ) {
+                    D.splice(D.indexOf(1), 1)
+                }
+                this.dispatch({ type: 'set', data: {headerArr: D} })
+            }
+        },
+        setheaerFn(labelD) {
+            let title = labelD.title
+            let n = headerArrModel[title]
+            let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+            if(D.indexOf(undefined) != -1 ) {
+                D.splice(D.indexOf(undefined), 1)
+            }
+            this.sortHeaderSet(D)
+        },
+        // 获取 头部数据 中 要取的数据在第几项
+        setHeaderDataIndex(labelD) {
+            console.log('a1111111', JSON.stringify(labelD))
+            let headerArr = this.state.headerArr
+            this.dispatch({ type: 'set', data: {headerArr: []} })
+            for(var i = 0; i < labelD.length; i++) {
+                if(labelD[i].title == 'home筛选_练手车') {
+                    for(var j = 0 ;j < labelD[i].type.length; j++) {
+                        let title = labelD[i].type[j].title
+                        let n = headerArrModel[title]
+                        let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+                        if(D.indexOf(undefined) != -1 ) {
+                            D.splice(D.indexOf(undefined), 1)
+                        }
+                        this.dispatch({ type: 'set', data: {headerArr: D} })
+                    }
+                    this.sortHeaderSet(this.state.headerArr)
+                } else {
+                    if(labelD[i].title == '筛选') {
+                        if(labelD[i].data.selectName == '淘车认证') {
+                            let title = labelD[i].title
+                            let n = headerArrModel[title]
+                            let D = Array.from(new Set(this.state.headerArr.concat([0])))
+                            if(D.indexOf(undefined) != -1 ) {
+                                D.splice(D.indexOf(undefined), 1)
+                            }
+                            this.sortHeaderSet(D)
+                        } else {
+                            this.setheaerFn(labelD[i])
+                        }
+                    } else {
+                        this.setheaerFn(labelD[i])
+                    }
+                }
+            }
+        },
+        clearLabelClick() {
+            // this.selectlistindex = 0
+            this.dispatch({ type: 'set', data: {selectlistindex: 0, input1value: '', input2value: ''} })
+            this.dispatch({ type: 'set', data: {headerArr: this.state.headerArr} })
+            this.dispatch({ type: 'set', data: {labeldata: []} })
+            this.dispatch({ type: 'set', data: {filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.dispatch({ type: 'set', data: { currentIndex: 1} })
+            this.buyCarListData2()
+        },
+        allCarGet() {
+            this.clearLabelClick()
+        },
+        // 买车 列表数据
+        buyCarListData2(currnetData) {
+            this.dispatch({ type: 'set', data: {citySelectTop: 2} })
+            this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.setHeaderDataIndex(this.state.labeldata)
+            router.back()
+        },
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.UcarModelList = dataPatch.state.UcarModelList,
+            component.carModelData = dataPatch.state.carModelData
+            component.homeCarModelData = dataPatch.state.homeCarModelData
+            component.labeldata = dataPatch.state.labeldata
+            component.currentIndex = dataPatch.state.currentIndex
+            component.currnetData = dataPatch.state.currnetData
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+            component.isrefresh = dataPatch.state.isrefresh
+            component.carModel3Arr = dataPatch.state.carModel3Arr
+            component.listDatabrandpage = dataPatch.state.listDatabrandpage
+            component.citySelectTop = dataPatch.state.citySelectTop
+        }
+    }
+    export default connect(
+        mapStateToData,
+        fn
+    )(brandpage)
+</script>
+
+<style>
+    .none{
+        display: none;
+    }
+    .clearText{
+        background-color: #ff4e00;
+    }
+    .allCar{
+        border-bottom-width: 1px;
+        border-bottom-color: rgba(155, 152, 152, .5);
+    }
+    .setImage{
+        align-items: center;
+    }
+    .setImage image{
+        margin-left: 30px;
+    }
+    .loading {
+        animation-name: loading;
+        animation-timing-function: linear;
+        animation-duration: 300ms;
+        animation-iteration-count: infinite;
+    }
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+    @keyframes loading {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    /* 抽屉 */
+    .list_box{
+        height: 114px;
+        flex-grow: 1;
+        background-color: #ffffff;
+        border-bottom-width: 1px;
+        border-bottom-color: #e3e3e3;
+        padding-left: 38px;
+        align-items: center;
+    }
+    .list_boxprogress{
+        height: 404px;
+        flex-grow: 1;
+        padding-left: 38px;
+        align-items: center;
+        justify-content: center;
+    }
+    .red{
+        background-color: #ff4e00;
+    }
+    .maskBox image{
+        width: 42px;
+        height: 42px;
+        margin-bottom: 20px;
+    }
+    .maskBox text{
+        font-size: 32px;
+        color: #FFFFFF;
+        /* padding-top: 4px; */
+    }
+    .list_box text{
+        font-size: 30px;
+        color: #001414;
+    }
+    .demo-page-right {
+        
+    }
+    .demo-page-right2 {
+        
+    }
+    .tab-icon{
+        width: 70px;
+        height: 70px;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        /* animation-delay:2s; */
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #000000;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        opacity: 0;
+        height: 100%;
+        
+    }
+    .opacity05Show2{
+        /* animation-delay:2s; */
+        width: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        opacity: 1;
+        height: 100%;
+        
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        animation-delay:.5ms;
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 0.5;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.5;
+            height: 100%
+        }
+        to {
+            opacity: 0;
+            height: 0;
+            width: 0;
+            display: none;
+            background-color: #339933;
+        }
+    }
+    .transform {
+    }
+    .transformShow {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformShow;
+        /* animation-delay:2s; */
+        animation-duration: 200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 532px;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        height: 100%;
+    }
+    .transformShow750 {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformShow750;
+        /* animation-delay:2s; */
+        animation-duration: 200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 750px;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        height: 100%;
+    }
+    .transformHide {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformHide;
+        /* animation-delay:2s; */
+        animation-duration: 1200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 532px;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        height: 100%;
+    }
+    @keyframes transformShow750 {
+        from {
+            transform: translate(750px 0);
+        }
+        to {
+            transform: translate(0px 0px);
+        }
+    }
+    @keyframes transformShow {
+        from {
+            transform: translate(540px 0);
+        }
+        to {
+            transform: translate(0px 0px);
+        }
+    }
+    @keyframes transformHide750 {
+        from {
+            transform: translate(0 0);
+        }
+        to {
+            transform: translate(840px 0px);
+        }
+    }
+    @keyframes transformHide {
+        from {
+            transform: translate(0 0);
+        }
+        to {
+            transform: translate(840px 0px);
+        }
+    }
+    /*  */
+    .borTop{
+        border-top-width: 1px;
+        /* border-top-color: #eeeeee; */
+    }
+    .warp {
+        flex-wrap: wrap;
+        columns: 4;
+        flex-direction: row;
+        
+    }
+    .warp .center{
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 30px;
+    }
+    .big{
+        flex-grow: 1;
+        justify-content:space-between  ;
+    }
+    .big text{
+        text-align: center;
+        color : #2F3540;
+        font-size: 26px;
+        padding-top: 10px;
+        /* margin-right: 28px; */
+    }
+    .bj1Color{
+        background-color: #f8f8f8;
+        flex-grow: 1;
+        height: 58px;
+    }
+    .paddL{padding-left: 30px;}
+    .paddR{
+        padding-right: 48px;
+    }
+    .currentCityBox{
+        flex-grow: 1;
+        height: 54px;   
+        padding-left: 30px;
+        justify-content: space-between;
+    }
+    .currentCityBox .img1{
+        width: 35px;
+        height: 42px;
+        margin-top: 6px;
+        margin-right: 26px;
+    }
+    .currentCityBox .img2{
+        height: 36px;
+        width: 36px;
+        margin-top: 10px;
+        margin-right: 22px;
+    }
+    .currentCityBox .text1{
+        font-size: 36px;
+        color: #ff4e00;
+    }
+    .currentCityBox .text2{
+        font-size: 26px;
+        color: #a2a6a5;
+    }
+    .titleBOx{
+        background-color: #ffffff;
+        flex-grow: 1;
+        width: 100%;
+        color: #2F3540;
+        font-size: 30px;
+    }
+    .height-50 {
+        height: 56px;
+    }
+    .leftText{
+        justify-content: flex-start;
+        flex-grow: 1;
+    }
+    .bg-red {
+        flex-grow: 1;
+        background-color: #f8f8f8;
+    }
+
+    .flexRight{
+        width: 40px;
+        height:78%;
+        position: fixed;
+        top: 156px;
+        background-color: #ffffff;
+        right:0px;
+        /* justify-content: center; */
+        align-items: center;
+        flex-direction:column;;
+    }
+    .flexRight .divtext{
+        height: 70px;
+        /* width:40px; */
+        flex-direction:column;;
+        justify-content: center;
+        width: 40px;
+        background-color: #ffffff;
+    }
+    .flexRight .divtext text{
+        text-align: center;
+        color: #ff5800;
+    }
+    .style0{
+        flex-shrink: 0;
+        width: 130px;
+        flex-shrink: 0;
+        flex-basis: 190px;
+    }
+    .demo-page {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+
+
+
+
+
+

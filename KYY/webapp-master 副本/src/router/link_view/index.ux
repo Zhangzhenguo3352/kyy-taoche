@@ -1,0 +1,241 @@
+<import name="loading"  src="../../Template/loading"></import>
+<import name="header" src="../../router/component/header"></import>
+
+<template>
+    <div class="box-Main">
+        <!-- <text>{{city}}</text> -->
+        <div class="slef">
+            <header title="{{title}}" titleshow="{{titleshow}}" prop1="{{true}}">
+                <div class="div style0"   @click="backFn" >
+                    <image src="../../static/icon/back.png" alt="" />
+                </div>
+                
+            </header>
+            
+            <loading 
+                loading-text="正在加载..." 
+                loading-image="../../Template/loading.png" 
+                loading-show="{{isLoading}}" 
+            ></loading>
+                <web 
+                    id="web" 
+                    src="{{url}}" 
+                    @pagestart="pagestart"
+                    @pagefinish="pagefinish"
+                    @titlereceive="titlereceive"
+                    @error="error"
+                ></web>
+        </div>
+    </div>
+</template>
+
+<style>
+
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+    .demo-page {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 100px;
+        width: 750px;
+    }
+    .slef{
+        /* background-color: #2a9700;
+        display: flex;
+        flex-direction: column;
+        column: 1; */
+        /*  */
+        /* height: 100%; */
+        /* padding-bottom: 100px; */
+        flex-direction: column;
+        height: 100%;
+        column: 1;
+        /* background-color: #FF6402; */
+    }
+    web{
+        flex:1;
+        margin-top: 100px;
+        
+    }
+    #loading {
+        width: 100%;
+        height: 100%;
+        background-color: #333333;
+        opacity: 0.5;
+        display: none;
+    }
+
+    
+    
+    
+    .open-bar {
+        padding: 20px;
+        flex-direction: row;
+        
+    }
+    .open-btn {
+        width: 30%;
+        /* background-color: #f1f1f1; */
+        color: #333333;
+        margin: 0 20px;
+        font-size: 24px;
+    }
+    .box-Main{
+        
+        flex-direction: column;
+        height: 100%;
+        /* background-color: #FF6402; */
+    }
+    .slef2{
+        /* height: 100%; */
+        /* padding-bottom: 100px; */
+        height: 100%;
+        width: 100%;
+        /* padding-bottom: 100px;
+        margin-top: 100px;
+        height: 700px;
+        width: 100%;
+        background-color: #FF6402; */
+    }
+    web{
+        margin-top: 100px;
+    }
+    .mian_box{
+        align-items:flex-end;
+        position: fixed;
+        bottom:0;
+        left: 0;
+        height: 100px;
+        border-top-color: #dbdbdb;
+        border-top-width: 1px;
+        /* background-color: #ffffff; */
+    }
+    .box{
+        height: 100px;
+        width: 100%;
+    }
+    #tab{
+        height: 100px;
+    }
+    .tab-item {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+    }
+    .tab-icon {
+        width: 50px;
+        height: 50px;
+    }
+    tab-bar {
+        align-items:flex-end;
+        height: 100px;
+        border-top-color: #DDDDDD;
+        border-top-width: 1px;
+    }
+    .normal {
+        color: #818D9A;
+    }
+    .selected {
+        color: #FF6402;
+    }
+</style>
+
+<script>
+    import router from '@system.router';
+    import webview from '@system.webview'
+    import { inItdata } from '../../util/dataX.js'
+    
+    export default {
+        data: {
+            url: '',
+            isLoading: false,
+            loadingShow: true,
+            title: '',
+            backshow: false,
+            titleshow: true,
+            title2: '',
+            xxx: [],
+            num: 0
+        },
+        onInit () {
+            console.log('link clear ')
+            this.xxx = []
+            this.url = this.urlName
+            this.title = this.titleName
+            this.title2 = this.titleName
+        },
+        onShow(){},
+        // 返回
+        backFn(e) {
+            // router.back()
+            console.log('111')
+            let _this = this
+            this.$element('web').canBack({
+                callback: function (e) {
+                    console.log('111lailai', e)
+                    if (e) {
+                        // 加载历史列表中的上一个 URL
+                        _this.$element('web').back()
+                    } else {
+                        router.back()
+                    }
+                    _this.xxx.pop() 
+                    _this.num--
+                    console.log('_this.xxx[0]', _this.xxx[_this.num-1])
+                    _this.title = _this.xxx[_this.num-1]
+                }.bind(this)
+            })
+            // 阻止默认行为，等待异步操作
+            return true
+        },
+
+        pagestart(e){
+            console.log('e-url', e.url, e.url.indexOf('http://cooper.m.taoche.com/kuaiyingyong/buycar/carinfo2017') != -1)
+            this.url = e.url
+            this.isLoading = true;
+        },
+        
+        pagefinish(){
+            this.isLoading = false;
+        },
+        
+        openBtnPre(){
+            let _this = this;
+        },
+        
+        openBtnReload(){
+            this.$element('web').reload();
+        },
+
+        // back  找这个就行 pagestart
+        openBtnNext(){
+            this.isLoading = false;
+        },
+        
+        titlereceive(e){
+            this.isLoading = false;
+            console.log('s',e.title)
+            this.title = e.title
+            this.num++
+            this.num = this.num
+            
+            this.xxx.push(e.title)
+        },
+        error(){
+            // router.back()
+            console.log('errprrr')
+        }
+    }
+
+</script>

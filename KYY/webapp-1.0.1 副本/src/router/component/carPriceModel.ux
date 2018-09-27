@@ -1,0 +1,403 @@
+
+
+<template>
+        <!-- template里只能有一个根节点 -->
+        <div style="flex-direction: column;" >
+    
+            <div class="toastBox {{drawershow ? '' : 'none'}}" @click="maskClick"></div>
+    
+            <div class="listHeader_box list {{drawershow ? 'opacity05Show' : 'none'}}" style="flex-direction: column; ">
+                <div class="textleft">
+                    <text>自定义</text>
+                </div>
+                <div class="wrapStyle number" >
+                    <div  class="listBox" >
+                        <div class="div">
+                            <input type="number" class="submit" @change="inpuChange('input1value')" id="input1" value="{{input1value}}"/>
+                            <text>万</text>
+                        </div>
+                    </div>
+                    <div style="width: 3%;height: 70px;" >
+                        <text style="color: #868A8B;">—</text>
+                    </div>
+                    <div  class="listBox " >
+                        <div class="div input2Box">
+                            <input type="number" class="submit" @change="inpuChange('input2value')" id="input2" value="{{input2value}}"/>
+                            <text>万</text>
+                        </div>
+                    </div>
+                    <div class="listBox" style="width: 36%;justify-content: flex-end;">
+                        <div class="btnSubmit" show="{{submitGo}}" @click="btnSubmitClick" ><text class="goSubmit">确定</text></div>
+                        <div class="btn" show="{{!submitGo}}"><text class="goSubmit">确定</text></div>
+                    </div>
+                </div>
+                <div class="wrapStyle footer">
+                    <div @click="tabListClick(index, item)" for="{{(index,item) in rowlistdata}}" class="{{(index == 2|| index == 5 || index == 8) ? 'sn':'sn3'}} {{(index == 1|| index == 7|| index == 4 || index == 10) ? 'sncenter':''}}" >
+                        <div class="{{(selectlistindex == index) ? 'tabBtnActive':'tabBtn'}}">
+                            <text class="{{(selectlistindex == index) ? 'select':'normal'}}">{{item.title}}</text>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <style>
+        .wrapStyle{
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .input2Box{
+            margin-left: 8px;
+        }
+        .sn{
+            justify-content: flex-end;
+            margin-top: 30px;
+            width:33.3%
+        }
+        .sn3{
+            justify-content: flex-start;
+            margin-top: 30px;
+            width:33.3%
+        }
+        .sncenter{
+            justify-content: center;
+            margin-top: 30px;
+            width:33.3%
+        }
+        .tabBtn{
+            height: 70px;
+            width: 210px;
+            border: 1px solid #DDDDDD;
+            border-radius: 5px;
+            justify-content: center;
+            align-items: center;
+        }
+        .listHeader_box .number{
+            padding-bottom: 30px;
+        }
+        .listHeader_box .footer{
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding-bottom: 30px;
+            border-top-width: 1px;
+            border-top-color: #ECECEC;
+        }
+        .tabBtnActive{
+            height: 70px;
+            width: 210px;
+            border: 1px solid #FF6D02;
+            border-radius: 5px;
+            justify-content: center;
+            align-items: center;
+        }
+        .wrapStyle .div{
+            border: 1px solid #818D9A;
+            border-radius: 5px;
+            font-size: 26px;
+            color: #000000;
+            height: 70px;
+            width: 200px;
+            padding-left: 20px;
+            padding-right: 20px;
+            /* margin-left: 20px; */
+        }
+        .wrapStyle .div text{
+            font-size: 26px;
+            color: #2F3540;
+        }
+        .goSubmit{
+            font-size: 26px;
+            color: #ffffff;
+        }
+        .noSubmit{
+            font-size: 26px;
+            color: #ffffff;
+        }
+        .wrapStyle .div input{
+            font-size: 26px;
+            padding-right: 10px;
+        }
+        .wrapStyle .btn{
+            background-color: #D6D6D6;
+            border-radius: 5px;
+            font-size: 26px;
+            color: #000000;
+            height: 70px;
+            width: 210px;
+            justify-content: center;
+            align-items: center;
+        }
+        .wrapStyle .btnSubmit{
+            background-color: #FF6D02;
+            border-radius: 5px;
+    
+            height: 70px;
+            width: 210px;
+            justify-content: center;
+            align-items: center;
+        }
+        .none{
+            display: none;
+        }
+        .toastBox {
+            flex-direction: column;
+            height: 100%;
+            position: fixed;
+            top: 191px;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .list {
+            flex-direction: column;
+            position: fixed;
+            top: 191px;
+            left: 0;
+            background-color: #333333;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .textleft{
+            width: 100%;
+            height: 93px;
+        }
+        .textleft text{
+            font-size: 24px;
+            color: #818D9A;
+        }
+        .listBox{
+            justify-content: space-between;
+            align-items: center;
+            width: 30%;
+        }
+    
+        .select {
+            color: #FF6D02;
+            height: 110px;
+            font-size: 26px;
+        }
+        .normal {
+            height: 110px;
+            font-size: 26px;
+            color: #2F3540;
+        }
+        .listHeader_box{
+            background-color: #ffffff;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+        .xia_img{
+            width: 26px;
+            height: 19px;
+        }
+        .opacity05Show{
+            animation-name: opacity05Show;
+            /* animation-delay:2s; */
+            animation-duration: 500ms;
+            animation-fill-mode: forwards ; /*  去了不要回来 */
+            animation-iteration-count: 1;
+    
+        }
+        .opacity0Hide{
+            animation-name: opacity0Hide;
+            /* animation-delay:2s; */
+            animation-duration: 500ms;
+            animation-fill-mode: forwards ; /*  去了不要回来 */
+            animation-iteration-count: 1;
+        }
+        @keyframes opacity05Show {
+            from {
+                transform: translate(0, -40px);
+                opacity: 0.2;
+            }
+            to {
+                transform: translate(0, 0px);
+                opacity: 1;
+            }
+        }
+        @keyframes opacity0Hide {
+            from {
+                opacity: 0.9;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    
+    
+    </style>
+    
+    <script>
+        import router from '@system.router';
+        import prompt from '@system.prompt'
+        import {
+            connect
+        } from 'quickapp-redux'
+        const carPriceModel = {
+            props: [
+                'rowlistdata',
+                'drawershow',
+                'selectlistindex',
+    
+            ],
+            data: {
+                // input1: '',
+                // input2: '',
+                submitGo: false,
+                selectName: '不限',
+                input1value: '',
+                input2value: ''
+            },
+            //input1 失去焦点
+            input1Focus() {
+                this.$element('input1').focus({
+                    focus: false
+                });
+            },
+            //input2 失去焦点
+            input2Focus() {
+                this.$element('input2').focus({
+                    focus: false
+                });
+            },
+    
+            //
+            submitFn(selectedPrice, selectName, type) {
+                this.input1Focus()
+                this.input2Focus()
+                this.$dispatch('carPriceModelFn', {
+                    startPrice: this.input1value.replace(/\b(0+)/gi,""),
+                    endPrice: this.input2value.replace(/\b(0+)/gi,""),
+                    selectedPrice, // 0 代表 不限
+                    selectName,
+                    type
+                })
+            },
+            tabListClick(index, item){
+                // this.selectlistindex = index;
+                // this.selectName = item.title
+                console.log('item.title',item.title)
+                this.submitFn(index, item.title, 'tab')
+            },
+            maskClick() {
+                this.$dispatch('carPriceModelClear', {index: 3})
+            },
+    
+            //提交
+            btnSubmitClick() {
+                console.log('this.selectlistindex',this.selectlistindex, this.selectName)
+                this.submitFn(this.selectlistindex, this.selectName, 'btn')
+            },
+    
+            //input 是 空 換成 0
+            inputF(value) {
+                if(value == '') {
+                    return 0
+                }
+                return value
+            },
+            focus() {
+                console.log('focus')
+            },
+    
+            input1Set(v) {
+                this.input1value = v
+                this.$dispatch('inputFn', {
+                    input1value: v,
+                    input2value: this.input2value
+                })
+            },
+    
+            input2Set(v) {
+                this.input2value = v
+                this.$dispatch('inputFn', {
+                    input1value: this.input1value,
+                    input2value: v
+                })
+            },
+                // input  事件
+            inpuChange(e, k) {
+                if(e == 'input1value') {
+                    if (k.value&&k.value!="null") {
+                        var isFloat = k.value.indexOf('.')
+                        if (isFloat != -1) {
+                            var val = k.value
+                            if (val.length>4) {
+                                this.input1value = Number(val.slice(0,2) + '.' + val.slice(2,4))
+                            } else {
+                                this.input1Set(k.value)
+                            }
+                        }else {
+                            if (k.value.length>4) {
+                                this.input1value = Number(k.value.slice(0,4))
+                            } else {
+                                this.input1Set(k.value)
+                            }
+                        }
+    
+                    } else {
+                        this.input1Set(k.value)
+                    }
+                } else {
+                    if (k.value&&k.value!="null") {
+                        var isFloat = k.value.indexOf('.')
+                        if (isFloat != -1) {
+                            var val = k.value
+                            if (val.length>4) {
+                                this.input2value = Number(val.slice(0,2) + '.' + val.slice(2,4))
+                            } else {
+                                this.input2Set(k.value)
+                            }
+                        }else {
+                            if (k.value.length>4) {
+                                this.input2value = Number(k.value.slice(0,4))
+                            } else {
+                                this.input2Set(k.value)
+                            }
+                        }
+    
+                    } else {
+                        this.input2Set(k.value)
+                    }
+    
+    
+                }
+                // this[e] = k.value
+                if(this.input1value != '' || this.input2value != '' ) {
+                    if(Number(this.inputF(this.input1value)) < Number(this.inputF(this.input2value))) {
+                        this.submitGo = true
+                    } else if(this.input2value == '') {
+                        this.submitGo = true
+                    } else if(Number(this.inputF(this.input1value)) == Number(this.inputF(this.input2value))){
+                        this.submitGo = true
+                    } else {
+                        this.submitGo = false
+                    }
+                } else {
+                    this.submitGo = false
+                }
+            },
+        }
+        function mapStateToData(state) {
+            return {  
+                state
+            }
+        }
+    
+        const fn = {
+            componentWillReceiveDataPatch: (component, dataPatch, state) => {
+                component.input1value = dataPatch.state.input1value
+                component.input2value = dataPatch.state.input2value
+            }
+        }
+    
+        export default connect(
+            // mapStateToProps
+            mapStateToData,
+            fn
+        )(carPriceModel)
+    </script>
+    

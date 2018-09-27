@@ -1,0 +1,151 @@
+<!-- @scrollbottom="listScrollBottom" -->
+<template>
+        <!-- template里只能有一个根节点 -->
+        <div class="demo-page">
+            <list style="flex-direction:column;columns: 1"  scrollpage="{{true}}">
+                <block for="(index,item) in listData" >
+                    <list-item type="{{index}}" >
+                        <div style="" class="borderBottom" if="{{index >= 20 ? false : true}}" @click="goLinkRouter(item, '车源详情')">
+                            <div style="width: 255px;height: 170px;flex-direction:column">
+                                <stack style="width: 255px;height: 170px;" >
+                                    <image
+                                        style="width: 255px;height: 170px;"
+                                        src="{{item.image}}"
+                                        class="imgList"
+                                    >
+                                    </image>
+                                    <!-- 淘车认证 -->
+                                    <!-- <div
+                                        style="width: 100px;height: 40px;background-color: #FF6402;justify-content: center;">
+                                        <text style="font-size: 20px;color: #FFFFFF;">淘车认证</text>
+                                    </div> -->
+                                    <!-- 淘车直卖 -->
+                                    <!-- <div
+                                        style="width: 100px;height: 40px;background-color: #49ADFF;justify-content: center;">
+                                        <text style="font-size: 20px;color: #FFFFFF;">淘车直卖</text>
+                                    </div> -->
+                                </stack>
+                            </div>
+                            <div style="flex-direction: column;margin-left: 30px;" >
+                                <div  style="width: 405px;margin-top:-8px;height: 84px;align-items: flex-start;justify-content:flex-start;flex-direction: column;">
+                                    <text style="font-size: 32px;color: #2F3540;">{{item.title}}</text>
+                                </div>
+                                <div style="flex-direction: row;margin-top: 6px;margin-bottom: 10px">
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;">{{item.buyCarYear}}</text>
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;padding-left: 14px;padding-right: 14px;margin-top: -4px;">|</text>
+                                    <text style="font-size: 26px;line-height: 40px;color: #818D9A;">{{item.drivingMileage10K}}</text>
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;padding-left: 14px;padding-right: 14px;margin-top: -4px;">|</text>
+                                    <text style="font-size: 26px;line-height: 40px;color: #818D9A;">{{item.carCityName}}</text>
+                                </div>
+                                <div style="flex-direction: row;align-items: center;margin-bottom: 10px ">
+                                    <text style="color: #FF6402;font-size: 32px;font-weight: bold;">{{item.displayPriceText}}</text>
+                                    <!-- <text style=" margin-left:20px;color: #818D9A;font-size: 26px;margin-right: 10px;padding: 5px;border-radius: 5px">首付4.48万</text> -->
+                                </div>
+                                <!-- <div style="flex-direction: row;margin-top: 10px;margin-bottom: 10px;">
+                                        <div
+                                            style="border: 1px solid #E5D8B8;border-radius: 6px;flex-direction: row;"
+                                            class="paddingleft10 paddingright0 paddingtop5 paddingbottom5"
+                                        >
+                                            <text style="padding-right: 12px;line-height: 20px;color: #BE9E4D;font-size: 20px;">45-47cm</text>
+                                            <text style="padding-right: 12px;line-height: 20px;color: #BE9E4D;font-size: 20px;">45-47cm</text>
+                                            <text style="padding-right: 12px;line-height: 20px;color: #BE9E4D;font-size: 20px;">45-47cm</text>
+                                        </div>
+    
+                                </div> -->
+                            </div>
+                        </div>
+                    </list-item>
+    
+                    <!-- <list-item type="loadMore" style="justify-content: center;margin-bottom: 20px" if="{{index == (listData.length-1)}}">
+                        <progress type="circular"></progress>
+                        <text style="margin-left: 20px">加载更多</text>
+                    </list-item> -->
+                </block>
+            </list>
+    
+        </div>
+    </template>
+    
+    <style>
+        .demo-page {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .borderBottom{
+            border-bottom-width: 1px;
+            border-bottom-color: #f0f0f0;
+            flex-direction: row;
+            padding-top:36px;
+            padding-bottom:20px;
+        }
+        .paddingleft10{padding-left: 10px}
+        .paddingright10{padding-right: 10px}
+        .paddingtop5{padding-top: 5px}
+        .paddingbottom5{padding-bottom: 5px}
+    </style>
+    
+    <script>
+        import router from '@system.router';
+        import fetch from '@system.fetch'
+        import prompt from '@system.prompt'
+        import { inItdata } from '../../util/dataX.js'
+        import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear } from '../../util/util.js'
+    
+        export default {
+            data: {
+                listData: [],
+            },
+            // listScrollBottom(){
+            //     // console.log('this',this.homelist)
+            //     setTimeout(()=>{
+            //         for (let i=0;i<10;i++){
+            //             this.listData.push({});
+            //         }
+            //     },2000)
+            // },
+            onInit() {
+                // this.getHomeListData()
+                this.listData = inItdata.listData
+                this.$on('propsListData', this.propsListData)
+            },
+            onShow() {
+                console.log(11)
+            },
+
+            // 去 webView 页面
+            goLinkRouter(urlName, titleName) {
+                
+                router.push({
+                    uri: 'router/link_view',
+                    params: {
+                        urlName: `http://cooper.m.taoche.com/kuaiyingyong/buycar/carinfo2017.aspx?ucarid=${urlName.ucarId}`,
+                        // urlName: `http://cooper.m.taoche.com/kuaiyingyong/buycar/b-dealerkcw6940563t.html`,
+                        titleName
+                    }
+                })
+            },
+            
+            propsListData(params) {
+                console.log('l', inItdata.listData.length)
+                this.listData = params.detail.params
+    
+            },
+            // 获取 列表数据
+            getHomeListData() {
+                let url = "https://www.sojson.com/open/api/weather/json.shtml?city=" + '北京'
+                ajaxFn(fetch, url, {}).then((homeListData) => {
+                    if(homeListData) {
+                        let arr = [{},{},{},{},{},{},{},{},{},{}]
+                        this.listData = arr
+                    } else {
+                        prompt.showToast({
+                            message: homeListData.Msg,
+                            duration:0
+                        });
+                    }
+                })
+            },
+        }
+    </script>
+    

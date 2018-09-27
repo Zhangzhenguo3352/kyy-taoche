@@ -1,0 +1,105 @@
+<!-- 公用的 Mash model 控件 -->
+<template>
+        <div>
+            <stack style="width: 100%;width: 100%" class="loadingstackShow" if="{{propsmaskshow == 'show'}}">
+                <div class="closeBox">
+                    <image src="/Common/close.png" class="closeBtn " @click="closeModel"/>
+                </div>
+                <slot></slot>
+            </stack>
+            <stack style="width: 100%;width: 100%" class="loadingstackHide" if="{{propsmaskshow == 'hide'}}">
+                <div class="closeBox" >
+                    <image src="/Common/close.png" class="closeBtn" @click="closeModel"/>
+                </div>
+                <slot></slot>
+            </stack>
+            <stack else></stack>
+        </div>
+    </template>
+    
+    <style>
+        .closeBox{
+            height: 100%;
+            width: 100%;
+            display: flex;
+            bottom: 0px;
+            left: 0;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .closeBox image{
+            height: 90px;
+            width: 90px;
+            margin-bottom: 138px;
+        }
+        .loadingstackHide {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top:0;
+            left:0;
+            background-color: rgba(0,0,0,0.60);
+            animation-name: loadingHide;
+            animation-duration: 1000ms;
+            animation-fill-mode: forwards ;
+            animation-iteration-count: 1;
+        }
+        .loadingstackShow {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            top:0;
+            left:0;
+            background-color: rgba(0,0,0,0.60);
+            animation-name: loadingShow;
+            animation-duration: 400ms;
+            animation-fill-mode: forwards ;
+            animation-iteration-count: 1;
+        }
+    
+        @keyframes loadingHide {
+            from {
+                background-color: rgba(0,0,0,0.60);
+                opacity: 1
+            }
+            to {
+                background-color: rgba(0,0,0,0);
+                opacity: 0
+            }
+        }
+
+        @keyframes loadingShow {
+            from {
+                background-color: rgba(0,0,0,0);
+                /* opacity: 0.7 */
+            }
+            to {
+                background-color: rgba(0,0,0,0.60);
+                /* opacity: 1 */
+            }
+        }
+    
+    </style>
+    
+    <script>
+        export default {
+            props: [
+                'propsmaskshow'
+            ],
+            data: {
+                propsmaskshow: ''
+            },
+            onInit() {},
+
+            // 关闭 估价框
+            closeModel() {
+                this.propsmaskshow = 'hide'
+                setTimeout(() => {
+                    this.propsmaskshow = ''
+                },800)
+            },
+
+        }
+    </script>

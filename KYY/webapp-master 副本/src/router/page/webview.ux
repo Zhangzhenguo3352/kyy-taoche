@@ -1,0 +1,229 @@
+<import name="loading"  src="../../Template/loading"></import>
+<import name="header" src="../../router/component/header"></import>
+
+<template>
+    <div class="demo-page">
+        <header title="{{title}}" titleshow="{{backshow}}" prop1="{{fale}}">
+            <div class="div style0"   @click="openBtnPre" if="{{backshow}}">
+                <image src="../../static/icon/back.png" alt=""/>
+            </div>
+        </header>
+        <loading 
+            loading-text="正在加载..." 
+            loading-image="../../Template/loading.png" 
+            loading-show="{{isLoading}}" 
+        ></loading>
+        <!-- <text style="margin-top: 100px;" >{{num}}</text> -->
+        <!-- <text style="margin-top: 100px;" for="{{xxx}}">{{$item}}{{$idx}}</text> -->
+        <web 
+            id="web" 
+            src="{{webviewurl}}" 
+            @pagestart="pagestart" 
+            @pagefinish="pagefinish" 
+            @titlereceive="titlereceive" 
+            @error="error"
+        ></web>
+    </div>
+</template>
+
+<style>
+
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+    .demo-page {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 750px;
+    }
+    #loading {
+        width: 100%;
+        height: 100%;
+        background-color: #333333;
+        opacity: 0.5;
+        display: none;
+    }
+
+    #loading label {
+        width: 100%;
+        text-align: center;
+    }
+    #loadingtext {
+        width: 100%;
+        height: 80%;
+        position: fixed;
+        top: 100px;
+        left: 0;
+        flex: 1;
+        z-index: 99;
+        padding-bottom: 130px;
+        display: none;
+    }
+    #loadingtext label {
+        width: 100%;
+        text-align: center;
+    }
+    .open-bar {
+        padding: 20px;
+        flex-direction: row;
+        background-color: #2a9700;
+    }
+    .open-btn {
+        width: 30%;
+        background-color: #f1f1f1;
+        color: #333333;
+        margin: 0 20px;
+        font-size: 24px;
+    }
+    web{
+        flex:1;
+        margin-top: 100px;
+        
+    }
+</style>
+
+<script>
+    import router from '@system.router';
+    import { inItdata } from '../../util/dataX.js'
+    import webview from '@system.webview'
+
+    export default {
+        props: [
+            'webviewurl',
+            
+        ],
+        data: {
+            isLoading: false,
+            loadingShow: true,
+            backshow: false,
+            titleshow: false,
+            title: '',
+            xxx: [],
+            xxx2: '',
+            num: 0,
+        },
+        onReady() {
+            console.log('docuemnt', document.style)
+        },
+        onInit () {
+            console.log('lcear')
+            this.xxx = []
+        },
+        onShow(){},
+        
+        pagestart(e){
+            console.log('e-url', e.url, e.url.indexOf('http://cooper.m.taoche.com/kuaiyingyong/buycar/carinfo2017') != -1)
+            
+            this.url = e.url
+            this.isLoading = true;
+            let _this = this;
+            this.$element('web').canBack({
+                callback: function (e) {
+                    
+                    _this.$dispatch('webviewChange', { showTab: !e})
+                    _this.backshow = e
+                }
+            });
+        },
+        
+        pagefinish(e){
+            this.isLoading = false;
+            let _this = this;
+            this.$element('web').canBack({
+                callback: function (e) {
+                    // if(e) {
+
+                    // } else {
+
+                    // }
+                    
+                    _this.$dispatch('webviewChange', { showTab: !e})
+                    _this.backshow = e
+                    
+                }
+            });
+        },
+        openBtnPre(e){
+            let _this = this;
+            this.$element('web').canBack({
+                callback: function (e) {
+                    console.log('back', e)
+                    if (e) {    
+                        
+                        _this.$element('web').back();
+                        _this.xxx.pop() 
+                        console.log('_this.xxx',_this.xxx[0])
+                        if(!_this.xxx[0]) {
+                            _this.title = _this.xxx2
+                            console.log('utl', _this.url, _this.xxx2, _this.url.indexOf('http://cooper.m.taoche.com/pinggu/') != -1)
+                            if(_this.url.indexOf('http://cooper.m.taoche.com/pinggu/') != -1) {
+                                _this.backshow = false
+                            }
+                        } else {
+                            
+                            _this.num--
+                            console.log('_this.xxx[0]', _this.xxx[_this.num-1])
+                            _this.title = _this.xxx[_this.num-1]
+                        }
+                        
+                    } 
+                }
+            });
+        },
+        openBtnReload(){
+            console.log('-0000')
+            this.$element('web').reload();
+        },
+
+        // back  找这个就行 pagestart
+        openBtnNext(){
+            this.isLoading = false;
+            let _this = this;
+            this.$element('web').canForward({
+                callback: function (e) {
+                    console.log('openBtnNext')
+                    if (e) {
+                        _this.$element('web').forward()
+                    }
+                }
+            });
+        },
+        titlereceive(e){
+            console.log('e', e.title)
+            console.log('e-url2', this.url) 
+            this.title = e.title
+            this.num++
+            this.num = this.num
+
+            this.xxx2 = e.title
+            this.xxx.push(e.title)
+
+            this.isLoading = false;
+            let _this = this;
+            this.$element('web').canBack({
+                callback: function (e) {
+                    _this.$dispatch('webviewChange', { showTab: !e})
+                    
+                    console.log('titlereceive')
+                    _this.backshow = e
+                    
+                }
+            });
+        },
+        
+        // error(){
+        //     router.back()
+        // }
+    }
+
+</script>
