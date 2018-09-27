@@ -1,0 +1,208 @@
+<import name="header" src="../component/header"></import>
+<!-- 估价结果 -->
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div class="me">
+        <header title="估价结果页" menu="menu" titleshow="{{true}}" prop1="{{false}}" show="{{true}}">
+            <div class="style0"  @click="backFn">
+                <image src="../../static/icon/back.png" alt="" />
+            </div>
+        </header>
+        <div class="resultBox">
+            <stack>
+                <div class="circleBox leftBox"><text>车况略差</text><text>{{data.MinPrice}}万</text></div>
+                <div class="circleBox rightBox"><text>车况良好</text><text>{{data.MaxPrice}}万</text></div>
+                <stack class="circleBox centerBox">
+                    <text class="centerTop">参考估价</text>
+                    <text class="centerCt">{{data.MidPrice}}<span class="wan">万</span></text>
+                    <text class="centerBt">卖给商家</text>
+                </stack>
+            </stack>
+            <div class="infoBox">
+                <text lines="1" text-overflow="ellipsis" class="carType">{{data.SerialName}} {{data.ProductName}}</text>
+            </div>
+            <div class="infoBox carDate">
+                <text class="carDateL">{{data.LicenceDate}} 上牌 </text>
+                <text class="carDateR"> {{data.Mileage}}万公里</text>
+            </div>
+            <div class="sellOther">
+                <text>{{(data.CustomerPrice!='0')?('卖给个人参考价 '+data.CustomerPrice+'万'):'暂无卖给个人参考价'}}</text>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import router from '@system.router'
+    import { connect } from 'quickapp-redux'
+    const result = {
+        protected: {
+            json: ''
+        },
+        private: {
+            data: {}
+        },
+        backFn() {
+            router.back()
+        },
+        onShow() {
+            this.data = JSON.parse(this.json)
+        },
+        onInit() {
+            // console.log("init===========", this.json)
+        }
+    }
+
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            // component.$page.setTitleBar({ text: dataPatch.state.a })
+            // component.title = dataPatch.state.title
+            component.drawershow = dataPatch.state.drawershow
+            component.drawershowtype = dataPatch.state.drawershowtype
+            component.currnetData = dataPatch.state.currnetData
+        }
+    }
+
+    export default connect(
+        // mapStateToProps
+        mapStateToData,
+        fn
+    )(result)
+</script>
+
+<style>
+    .me{
+        height: 100%;
+        width: 100%;
+        flex-direction: column;
+    }
+    .resultBox{
+        flex-direction: column;
+        height:534px;
+        width: 100%;
+        background: linear-gradient(#FF9A00,#FF8A00);
+        margin-top: 100px;
+    }
+    .circleBox{
+        width: 180px;
+        height: 180px;
+        border-width: 8px;
+        border-color: #FFAA33;
+        border-style: solid;
+        background-color: #FF8700;
+        border-radius: 90px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .leftBox text,.rightBox text{
+        color: #fff;
+        font-size: 26px;
+    }
+    .leftBox{
+        margin-top: 99px;
+        margin-left: 81px;
+    }
+    .rightBox{
+        margin-top: 99px;
+        margin-left: 489px;
+    }
+    .centerBox{
+        width: 278px;
+        height: 278px;
+        margin-top: 58px;
+        margin-left: 236px;
+        border-radius: 139px;
+        background-color: #FFF5E6;
+        justify-content:flex-start;
+        flex: 0;
+    }
+    .centerBox text{
+        color: #FF8900;
+    }
+    .centerTop{
+        font-size: 32px;
+        line-height: 45px;
+        height: 45px;
+        margin-top: 52px;
+    }
+    .centerCt{
+        font-size: 70px;
+        height:98px;
+        line-height: 98px;
+        margin-top: 75px;
+        border-bottom-width: 1px;
+        border-style: solid;
+        border-bottom-color: #FF8C00;
+    }
+    .centerBt{
+        font-size: 26px;
+        line-height: 37px;
+        height: 37px;
+        margin-top: 186px;
+    }
+    .wan{
+        font-size: 26px;
+    }
+    .carType{
+        width: 100%;
+        height: 40px;
+        text-align: center;
+        color: #fff;
+        font-size: 28px;
+        margin-top:20px;
+    }
+    .infoBox{
+        justify-content: center;
+    }
+    .infoBox text{
+        color: #fff;
+    }
+    .carDate{
+        height: 37px;
+        margin-top: 10px;
+    }
+    .carDateL,.carDateR{
+        font-size: 26px;
+        height:26px;
+    }
+    .carDateL{
+        border-right-width: 1px;
+        border-right-color: #fff;
+        border-style: solid;
+        margin-right: 10px;
+        padding-right: 10px;
+    }
+    .sellOther{
+        margin-top: 15px;
+        padding-top: 15px;
+        padding-left: 30.5px;
+        border-top-width: 2px;
+        border-top-color: #FFB866;
+        border-style: solid;
+    }
+    .sellOther text{
+        color: #fff;
+        font-size: 32px;
+        height: 45px;
+        line-height: 45px;
+    }
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+</style>

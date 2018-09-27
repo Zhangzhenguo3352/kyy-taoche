@@ -1,0 +1,982 @@
+
+<!-- 买车 -->
+<import name="header" src="../../router/component/header"></import>
+<import name="lodaingDrawer" src="../../router/component/lodaingDrawer"></import>
+<import name="rowList" src="../../router/component/rowList"></import>
+<import name="initmodel"  src="../../router/component/initmodel"></import>
+<import name="carPriceModel" src="../../router/component/carPriceModel"></import>
+<import name="label" src="../../router/component/label"></import>
+
+<template>
+    <div style="flex-direction: column;margin-top:90px;" class="me fixed"  >
+        <div  class="listHeader_box" style="flex-direction: row; justify-content:space-between;">
+            <div class="taoche" @click="tabBuyCarClick(0)" show="{{buyCarListData.IsShowTaocheAuthCar != 0 ? true : false}}">
+                <div class="borderStyle">
+                    <image resize-mode="contain" src="../../static/icon/select.png" alt="图片加载失败" show="{{this.headerArr.indexOf(0) == -1}}"></image>
+                    <image resize-mode="contain" src="../../static/icon/selected.png" alt="图片加载失败" show="{{this.headerArr.indexOf(0) != -1}}"></image>
+                    <text class="{{(headerArr.indexOf(0) != -1) ? 'select':'normal'}}">淘车认证</text>
+                </div>
+            </div>
+            <div @click="tabBuyCarClick(1)" class="{{(buyCarListData.IsShowTaocheAuthCar != 0) ? '' :'mleft30'}}">
+                <div class="styleSet" >
+                    <text class="{{(currentRowlistdata.id != 0) ? 'select':'normal'}}" show="{{!drawershow}}">{{currentRowlistdata.name}}</text>
+                    <text class="select" show="{{drawershow}}">{{currentRowlistdata.name}}</text>
+                    <image resize-mode="contain" src="../../static/icon/xia2.png" alt="图片加载失败" show="{{!drawershow}}"></image>
+                    <image resize-mode="contain" src="../../static/icon/shang.png" alt="图片加载失败"show="{{drawershow}}"></image>
+                </div>
+            </div>
+            <div @click="tabBuyCarClick(2)">
+                <div class="styleSet" >
+                    <text class="{{(headerArr.indexOf(2) != -1) ? 'select':'normal'}}">品牌</text>
+                    <image resize-mode="contain" src="../../static/icon/xia2.png" alt="图片加载失败" ></image>
+                </div>
+            </div>
+            <div @click="tabBuyCarClick(3)">
+                <div class="styleSet" >
+                    <text class="{{(headerArr.indexOf(3) != -1) ? 'select':'normal'}}" show="{{!carPriceModelshow}}">价格</text>
+                    <text class="select" show="{{carPriceModelshow}}">价格</text>
+                    <image resize-mode="contain" src="../../static/icon/xia2.png" alt="图片加载失败" show="{{!carPriceModelshow}}"></image>
+                    <image resize-mode="contain" src="../../static/icon/shang.png" alt="图片加载失败"show="{{carPriceModelshow}}"></image>
+                </div>
+            </div>
+            <div @click="tabBuyCarClick(4)"  class="mright14">
+                <div class="styleSet" >
+                    <text class="{{(headerArr.indexOf(4) != -1) ? 'select':'normal'}}">筛选</text>
+                    <image resize-mode="contain" src="../../static/icon/xia2.png" alt="图片加载失败" ></image>
+                </div>
+            </div>
+        </div>
+        <rowList rowlistdata="{{rowlistdata}}" drawershow="{{drawershow}}" ></rowList>
+        <carPriceModel
+            rowlistdata="{{carPricData}}"
+            drawershow="{{carPriceModelshow}}"
+            selectlistindex="{{selectlistindex}}"
+            input1value="{{input1value}}"
+            input2value="{{input2value}}"
+        ></carPriceModel>
+        <!-- 车列表 -->
+        <div class="loadmore_list" >
+            <div class="carUlMain" >
+                <lodaingDrawer labelShow="{{labelShow}}" labeldata="{{labeldata}}" ></lodaingDrawer>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+    import device from '@system.device'
+    import router from '@system.router';
+    import fetch from '@system.fetch'
+    import prompt from '@system.prompt'
+    import storage from '@system.storage'
+    import { connect } from 'quickapp-redux'
+    import geolocation from '@system.geolocation'
+    import { inItdata } from '../../util/dataX.js'
+    import { CC2PY } from '../../util/pinyin.js'
+    import { carPricData, rowlistdata, rowListPriceData, mainJson, headerArrModel, carFeatures} from '../../util/defaultCarData.js'
+    import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, idIsFn, rowListHeaderData, utlSpliceFn, filterObject } from '../../util/util.js'
+
+    const buyCar = {
+        props: [
+            'location',
+            'city', // 当前城市
+            'locationstate',
+            'selectlocation',
+            'h'
+        ],
+        data: {
+            res: [],
+            isrefresh: '',
+            propsmaskshow: '',
+            currnetData: null,
+            https: '',
+            selectIndex:0,
+            selectlistindex: 0,
+            input1value: '',
+            input2value: '',
+            rowlistdata,
+            carPricData ,
+            drawershow: false,
+            carPriceModelshow: false,
+            headerArr: [],
+            UcarModelList: [],
+            buyCarListData: [],
+            taocheCertified: {
+                cartype: 4,
+                active: false
+            },
+            currentRowlistdata: {
+                name: '推荐排序',
+                id: 0
+            },
+            currentPriceData: {
+                startPrice: 0,
+                endPrice: 0,
+                selectedPrice: 0, // 0 代表 不限
+                selectName: '不限'
+            },
+            carModelData: {
+                name1: {},
+                name2: {},
+                name3: {}
+            },
+            labelShow: true,
+            labeldata: [],
+            homeCarModelData: {
+                name1: {},
+                name2: {},
+                name3: {}
+            }, // 车型初始化数据
+            filterdata: [],
+            pageIndex: 0,
+            PageCount: null,
+            isNOData: false
+        },
+        onInit() {
+            this.$on('webviewChange', this.webviewChange)
+            this.$on('carPriceModelFn', this.carPriceModelFn)
+            this.$on('rowListClick', this.rowListClick) // 推荐排序  数据点击事件
+            this.$on('modelClear', this.modelClear)
+            this.$on('carPriceModelClear', this.carPriceModelClear)
+            this.$on('clearLabelClick', this.clearLabelClick)
+            this.$on('labelClick', this.labelClick)
+            this.$on('inputFn', this.inputFn)
+            this.$on('pageRefresh', this.pageRefresh)
+            this.$on('homeBuyCarBtnClick', this.homeBuyCarBtnClick)
+            this.$on('listScrollBottom', this.listScrollBottom)
+        },
+        homeBuyCarBtnClick() {
+            this.buyCarListData2(this.state.currentRowlistdata.id)
+        },
+        showBuyCarTop() {
+            this.$broadcast('showBuyCarTop')
+        },
+        showBuyCar() {
+            this.buyCarListData2(this.state.currentRowlistdata.id)
+        },
+        // 更多
+        listScrollBottom(e) {
+            this.buyCarListData2(this.state.currentRowlistdata.id, this.state.PageIndex, true)
+        },
+        // 刷新
+        pageRefresh(e) {
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+            this.buyCarListData2(this.state.currentRowlistdata.id)
+        },
+        clearLabelClick() {
+            this.getListData()
+            this.dispatch({ type: 'set', data: {selectlistindex: 0, input1value: '', input2value: ''} })
+            this.currentPriceData.selectName = '不限'
+            this.showBuyCar()
+            this.dispatch({ type: 'set', data: {citySelectTop: 2} })
+            this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+            this.dispatch({ type: 'set', data: {headerArr: this.state.headerArr} })
+            this.dispatch({ type: 'set', data: {labeldata: []} })
+            this.dispatch({ type: 'set', data: {filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.buyCarListData2(this.state.currentRowlistdata.id)
+        },
+        // 免费估价
+        goLink(uri) {
+            router.push({
+                uri
+            })
+        },
+        // 使用 推荐排序 model
+        sortMOdelFn() {
+            this.carPriceModelshow = false
+            this.drawershow = false
+            this.drawershow = true
+        },
+        // 使用 价格 model
+        priceMOdelFn() {
+            this.drawershow = false
+            this.carPriceModelshow = false
+            this.carPriceModelshow = true
+        },
+        // 清除 所有model
+        clearModelFn() {
+            this.drawershow = false
+            this.carPriceModelshow = false
+        },
+        // 清除对应项
+        clearHeaderTabes(k) {
+            if(this.state.headerArr.indexOf(k) != -1) {
+                this.state.headerArr.splice(this.state.headerArr.indexOf(k), 1)
+                this.dispatch({ type: 'set', data: {headerArr: this.state.headerArr} })
+            }
+        },
+        // 添加 label
+        setlabelData(data, id, title, type, params) {
+            const json = {}
+            json.title = title
+            json.data = data
+            json.id = id
+            json.type = type
+            json.params = params
+            if(params == '') {
+                this.state.labeldata.push(json)
+            } else {
+                this.state.labeldata = JSON.parse(JSON.stringify(this.filterCarData(this.state.labeldata)))
+                this.state.labeldata.push(json)
+            }
+            this.dispatch({ type: 'set', data: {labeldata: JSON.parse(JSON.stringify(this.state.labeldata))} })
+        },
+
+        sortHeaderSet(D) {
+            if(this.state.currentRowlistdata.id != 0) {
+                let data = Array.from(new Set(D.concat([1])))
+                this.dispatch({ type: 'set', data: {headerArr: data} })
+            } else {
+                if(D.indexOf(1) != -1 ) {
+                    D.splice(D.indexOf(1), 1)
+                }
+                this.dispatch({ type: 'set', data: {headerArr: D} })
+            }
+        },
+
+        setheaerFn(labelD) {
+            let title = labelD.title
+            let n = headerArrModel[title]
+            let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+            if(D.indexOf(undefined) != -1 ) {
+                D.splice(D.indexOf(undefined), 1)
+            }
+            this.dispatch({ type: 'set', data: {headerArr: D} })
+        },
+
+        filterINdex1clear(current) {
+            for(var i = 0; i < 4; i++) {
+                this.state.filterdata[0][i] = -1
+            }
+            this.state.filterdata[0][current] = 1
+            this.dispatch({ type: 'set', data: {filterdata: this.state.filterdata} })
+        },
+        // 获取 头部数据 中 要取的数据在第几项
+        setHeaderDataIndex(labelD) {
+            console.log('a1111111', JSON.stringify(labelD))
+            let headerArr = this.state.headerArr
+            this.dispatch({ type: 'set', data: {headerArr: []} })
+            if(labelD.length > 0) {
+                for(var i = 0; i < labelD.length; i++) {
+                    if(labelD[i].title == 'home筛选_练手车') {
+                        for(var j = 0 ;j < labelD[i].type.length; j++) {
+                            let title = labelD[i].type[j].title
+                            let n = headerArrModel[title]
+                            let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+                            if(D.indexOf(undefined) != -1 ) {
+                                D.splice(D.indexOf(undefined), 1)
+                            }
+                            this.dispatch({ type: 'set', data: {headerArr: D} })
+                        }
+                        this.sortHeaderSet(this.state.headerArr)
+                    } else {
+                        if(labelD[i].title == '筛选') {
+                            if(labelD[i].data.selectName == '淘车认证') {
+                                let title = labelD[i].title
+                                let n = headerArrModel[title]
+                                let D = Array.from(new Set(this.state.headerArr.concat([0])))
+                                if(D.indexOf(undefined) != -1 ) {
+                                    D.splice(D.indexOf(undefined), 1)
+                                }
+                                this.sortHeaderSet(D)
+                            } else if(labelD[i].data.selectName == '品牌认证') {
+                                this.filterINdex1clear(2)
+                                this.setheaerFn(labelD[i])
+                            } else if(labelD[i].data.selectName == '个人车源') {
+                                this.filterINdex1clear(0)
+                                this.setheaerFn(labelD[i])
+                            } else if(labelD[i].data.selectName == '商家车源') {
+                                this.filterINdex1clear(3)
+                                this.setheaerFn(labelD[i])
+                            } else {
+                                this.setheaerFn(labelD[i])
+                            }
+                        } else if(labelD[i].title == '淘车认证') {
+                            this.filterINdex1clear(1)
+                            this.setheaerFn(labelD[i])
+                        }  else {
+                            this.setheaerFn(labelD[i])
+                        }
+                    }
+                }
+            } else {
+                let data = Array.from(new Set(this.state.headerArr.concat([1])))
+                if(data.indexOf(undefined) != -1 ) {
+                    data.splice(data.indexOf(undefined), 1)
+                }
+                this.dispatch({ type: 'set', data: {headerArr: data} })
+            }
+        },
+        // 买车 列表数据
+        buyCarListData2(order, index, bottom) {
+            if(this.state.moreShow === 2 ) return
+            const { cityId } = this.state.currnetData
+            let orderid = rowListHeaderData[order].orderid
+            let ordertype = rowListHeaderData[order].ordertype
+            let url = `${inItdata.http}?v=${inItdata.v}&imei=&referrer=1&action=getcarlist&cid=${cityId}&entry=taocheapp&pindex=${this.state.PageIndex}&orderid=${orderid}&ordertype=${ordertype}${utlSpliceFn(this.state.labeldata)}`
+            this.setHeaderDataIndex(this.state.labeldata)
+            console.log('买车 列表数据 url', url)
+            ajaxFn(fetch, url, {}).then((res) => {
+                this.dispatch({ type: 'set', data: {isrefresh: false} })
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    if(jsonParse.status == '100') {
+                        const { PageIndex, PageCount } = jsonParse.data
+                        if(!!bottom) {
+                            if(Number(PageIndex) < Number(PageCount)) {
+                                this.dispatch({ type: 'set', data: {moreShow: 1, PageIndex: Number(PageIndex)} })
+                                this.state.buyCarListData.Items = [...this.state.buyCarListData.Items, ...jsonParse.data.Items];
+                                this.dispatch({ type: 'set', data: {buyCarListData: JSON.parse(JSON.stringify(this.state.buyCarListData))} })
+                            } else if(Number(PageIndex) > Number(PageCount)) {
+                                this.dispatch({ type: 'set', data: {moreShow: 2} })
+                            } else { //相等
+                                this.dispatch({ type: 'set', data: {moreShow: 2} })
+                            }
+                        } else {
+                            if(Number(PageIndex) < Number(PageCount)) {
+                                this.dispatch({ type: 'set', data: {moreShow: 1} })
+                            } else { //相等
+                                this.dispatch({ type: 'set', data: {moreShow: 2} })
+                            }
+                            this.dispatch({ type: 'set', data: {buyCarListData: JSON.parse(JSON.stringify(jsonParse.data))} })
+                       }
+                       if(jsonParse.data.Items.length == 0) {
+                            this.dispatch({ type: 'set', data: {isNOData: true} })
+                       } else {
+                            this.dispatch({ type: 'set', data: {isNOData: false} })
+                       }
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        })
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        // 替换 label
+        replaceLabelData(data, id, title, index, type, params) {
+            const json = {}
+            json.title = title
+            json.data = data
+            json.id = id
+            json.type = type
+            json.params = params
+            let data1 =  [].concat(this.state.labeldata)
+            data1[index] = json
+            this.dispatch({ type: 'set', data: {labeldata: data1} })
+        },
+        // filter 车源 信息
+        filterCarData(labeldataArr) {
+            return labeldataArr.filter(item => item.data.selectName !== '淘车认证')
+                    .filter(item => item.data.selectName !== '个人车源')
+                    .filter(item => item.data.selectName !== '品牌认证')
+                    .filter(item => item.data.selectName !== '商家车源');
+        },
+        // 添加 标签数据
+        addLabelData(index, data, id, showName, type) {
+            if(index == 0) {
+                filterObject(data, this.state.labeldata)
+                if(this.state.labeldata.length == 0) {
+                    this.setlabelData(data, id, showName, 'nflag', 3)
+                } else {
+                    if( idIsFn(showName, this.state.labeldata) == undefined) {
+                        this.setlabelData(data, id, showName, 'nflag', 3)
+                    } else {
+                        this.car1()
+                        this.state.labeldata.splice(idIsFn(showName, this.state.labeldata), 1)
+                        this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+                    }
+                }
+                this.dispatch({ type: 'set', data: {isrefresh: true} })
+                this.buyCarListData2(this.state.currentRowlistdata.id)
+            } else if(index == 3) {
+                if(this.currentPriceData.selectName == '不限') {
+                    this.state.labeldata.splice(idIsFn(showName, this.state.labeldata), 1)
+                    this.dispatch({ type: 'set', data: {labeldata:  this.state.labeldata} })
+                } else {
+                    if(idIsFn(showName, this.state.labeldata) != undefined) {
+                        if(type == 'btn') {
+                            this.replaceLabelData(data, id, showName, idIsFn(showName, this.state.labeldata), {lp: data.startPrice, hp: data.endPrice}, '') // 这个是替换数据
+                        } else {
+                            this.replaceLabelData(data, id, showName, idIsFn(showName, this.state.labeldata), rowListPriceData[this.selectlistindex], '') // 这个是替换数据
+                        }
+                    } else {
+                        if(type == 'btn') {
+                            this.setlabelData(data, id, showName, {lp: data.startPrice, hp: data.endPrice}, '')
+                        } else {
+                            this.setlabelData(data, id, showName, rowListPriceData[this.state.selectlistindex], '')
+                        }
+                    }
+                }
+                this.dispatch({ type: 'set', data: {isrefresh: true} })
+                this.buyCarListData2(this.state.currentRowlistdata.id, 1)
+            }
+        },
+        carPFn() {
+            let bool = !this.carPriceModelshow
+            if(bool) {
+                this.priceMOdelFn()
+            } else {
+                this.clearModelFn()
+            }
+        },
+        rowFn() {
+            let bool = !this.drawershow
+            if(bool) {
+                this.sortMOdelFn()
+            } else {
+                this.clearModelFn()
+            }
+        },
+        tabBuyCarClick(index){
+            this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+            if(index == 3) {
+                this.carPFn()
+            } else if(index == 1) {
+                this.rowFn()
+            } else if(index == 4){
+                this.clearModelFn()
+                router.push({
+                    uri: 'router/filterPage',
+                    params: {
+                        testId: '1'
+                    }
+                })
+            } else if(index == 2){
+                this.clearModelFn()
+                router.push({
+                    uri: 'router/brandpage',
+                    params: {
+                        key: '2',
+                    }
+                })
+            } else {
+                this.addLabelData(0,  {selectName: '淘车认证'}, 4, '淘车认证')
+                // this.clearModelFn()
+                // if(this.headerArr.length == 1 && this.headerArr[0] == 0) return
+                // if(this.currentRowlistdata.name == '推荐排序') {
+                //     if(this.headerArr.indexOf(1) != -1) this.headerArr.splice(this.headerArr.indexOf(1), 1)
+                // }
+                // if(this.currentPriceData.selectName == '不限') {
+                //     if(this.headerArr.indexOf(3) != -1) this.headerArr.splice(this.headerArr.indexOf(3), 1)
+                // }
+            }
+            this.showBuyCarTop()
+        },
+
+        car1() {
+            this.state.filterdata[0][1] = -1
+            this.dispatch({ type: 'set', data: {filterdata: this.state.filterdata} })
+        },
+
+        // 设置 价格 model 框 初始化 数据
+        setCarPriceData(item, input1, input2, selectData) {
+            if(item.title == '价格') {
+                this.dispatch({ type: 'set', data: {selectlistindex: selectData, input1value:input1, input2value:input2 } })
+            }
+        },
+        Fn2(item, index) {
+            this.state.labeldata.splice(index, 1)
+            this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+            this.setCarPriceData(item, '', '', 0)
+        },
+        labelClick(data) {
+            this.dispatch({ type: 'set', data: {citySelectTop: 2} })
+            this.dispatch({ type: 'set', data: {moreShow: 0, PageIndex: 1} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            const { index, item } = data.detail
+            if(item.title == '品牌') {
+                let arr = ['品牌', '品牌2']
+                for(var i = 0; i < arr.length; i++) {
+                    if(idIsFn(arr[i], this.state.labeldata) != undefined) {
+                        this.state.labeldata.splice(idIsFn(arr[i], this.state.labeldata), 1)
+                        this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+                    }
+                }
+            } else if(item.title == '筛选') {
+                if(carFeatures[item.data.selectName]) {
+                    let n = carFeatures[item.data.selectName]
+                    this.state.filterdata[0][n.col] = -1
+                } else {
+                    this.state.filterdata[item.index] = -1
+                }
+                this.dispatch({ type: 'set', data: {filterdata: this.state.filterdata} })
+                this.Fn2(item, index)
+            } else if(item.title == '价格' ) {
+                if(this.state.labeldata.indexOf(item.title) == -1) {
+                    this.state.headerArr.splice(this.state.headerArr.indexOf(3), 1)
+                    this.dispatch({ type: 'set', data: {headerArr: this.state.headerArr} })
+                }
+                this.Fn2(item, index)
+            } else if(item.title == '淘车认证' ) {
+               this.car1()
+               this.Fn2(item, index)
+            } else {
+                this.Fn2(item, index)
+            }
+            this.showBuyCar()
+        },
+
+        inputFn(data) {
+            const { input1value, input2value } = data.detail
+            this.dispatch({ type: 'set', data: {input1value, input2value} })
+        },
+        // 获取列表数据 ajax
+        getListData() {
+            this.state.labeldata = []
+        },
+        carPriceModelClear(D) {
+            const { index } = D.detail
+            this.carPFn()
+        },
+        modelClear(D) {
+            const { index } = D.detail
+            this.rowFn()
+        },
+        webviewChange() {},
+
+        // 处理 要显现 input 的标签
+        inputShowText(input1, input2) {
+            if(input1 == '') {
+                if(input2 != '') { // 1没有， 2 有
+                    return `${input2}万以下`;
+                }
+            } else if(input2 == '') {
+                if(input1 != '') { // 1 有， 2 没有
+                    return `${input1}万以上`;
+                }
+            } else {
+                return `${input1}-${input2}万`
+            }
+        },
+        setCarPriceFn(input1, input2, selectData) {
+            this.dispatch({ type: 'set', data: {selectlistindex: selectData, input1value:input1, input2value: input2 } })
+        },
+
+        setInput(startPrice, endPrice, selectedPrice, selectName, type) {
+            const json = {}
+            json.startPrice = startPrice
+            json.endPrice = endPrice
+            json.selectedPrice = selectedPrice
+            json.selectName = this.inputShowText(startPrice, endPrice)
+            this.currentPriceData = json
+            this.setCarPriceFn( startPrice, endPrice, -1)
+            this.addLabelData(3, json, 2, '价格', type)
+        },
+        carPriceModelFn(data) {
+            const { startPrice, endPrice, selectedPrice, selectName, type } = data.detail
+            if(type == 'btn') {
+                if(startPrice == 0) {
+                   if(endPrice != 0) {
+                       this.setInput(startPrice, endPrice, selectedPrice, selectName, type )
+                   }
+                } else if(endPrice == 0) {
+                    if(startPrice != 0) {
+                        this.setInput(startPrice, endPrice, selectedPrice, selectName, type )
+                    }
+                } else {
+                    this.setInput(startPrice, endPrice, selectedPrice, selectName, type )
+                }
+            } else {
+                const json = {}
+                json.startPrice = ''
+                json.endPrice = ''
+                json.selectedPrice = selectedPrice
+                json.selectName = selectName
+                this.currentPriceData = json
+                this.setCarPriceFn( '', '', selectedPrice)
+                this.addLabelData(3, json, 2, '价格', type)
+            }
+            this.clearModelFn();
+            this.$broadcast('showBuyCarTop')
+        },
+        rowListClick(data) {
+            const { index } = data.detail
+            const json = {}
+            json.name = this.rowlistdata[index]
+            json.id = index
+            this.currentRowlistdata = json
+            this.clearModelFn();
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.buyCarListData2(index)
+            this.showBuyCarTop()
+        },
+    }
+    function mapStateToData(state) {
+        return { state }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.UcarModelList = dataPatch.state.UcarModelList
+            component.carModelData = dataPatch.state.carModelData
+            component.homeCarModelData = dataPatch.state.homeCarModelData
+            component.labeldata = dataPatch.state.labeldata
+            component.filterdata = dataPatch.state.filterdata
+            component.currnetData = dataPatch.state.currnetData
+            component.buyCarListData = dataPatch.state.buyCarListData
+            component.isrefresh = dataPatch.state.isrefresh
+            component.headerArr = dataPatch.state.headerArr
+            component.selectlistindex = dataPatch.state.selectlistindex
+            component.input1value = dataPatch.state.input1value
+            component.input2value = dataPatch.state.input2value
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+            component.PageIndex = dataPatch.state.PageIndex
+            component.PageCount = dataPatch.state.PageCount
+            component.currentIndex = dataPatch.state.currentIndex
+            component.isNOData = dataPatch.state.isNOData
+        }
+    }
+    export default connect( mapStateToData, fn )(buyCar)
+</script>
+<style>
+    .mright14{margin-right: 14px;}
+    .mright30{margin-right: 30px;}
+    .mleft30{margin-left: 30px;}
+    .label_box{
+        width: 100%;
+        padding-left: 30px;
+        padding-top: 20px;
+        background-color: #F5F5F5;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .p_t{
+        margin-bottom: 20px;
+        padding-right: 34px;
+    }
+    .label_box .left{
+        /* width: 628px; */
+        flex: 1;
+        flex-wrap: wrap;
+    }
+    .label_box .right{
+        width: 122px;
+    }
+    .normal {
+        color: #333333;
+    }
+
+    .select {
+        color: #FF6402;
+
+    }
+
+    .listHeader_box{
+        height: 90px;
+        border-bottom-width: 1px;
+        border-bottom-color: #E5E5E5;
+        justify-content: center;
+    }
+    .taoche{
+        width: 238px;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .taoche image{
+        height: 24px;
+        width: 24px;
+        /* margin-left: 20px; */
+    }
+    .taoche .borderStyle{
+        width: 178px;
+        height: 60px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #D9DCE0;
+        border-radius: 58px;
+    }
+    .borderStyle text{
+        font-size: 28px;
+        margin-left: 10px;
+    }
+    .borderStyleNormal text{
+        font-size: 28px;
+        color: #2F3540;
+        margin-left: 10px;
+    }
+    .me{
+        display: flex;
+        flex:1;
+        height: 100%;
+        width: 100%;
+    }
+    .listHeader_box .styleSet{
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+
+    }
+    .listHeader_box .styleSet text{
+        font-size: 28px;
+        margin-right: 6px;
+
+    }
+    .listHeader_box .styleSet image{
+        width: 14px;
+        height: 8px;
+
+    }
+
+    .model_init_box{
+        align-items: center;
+        width: 100%;height: 100%;
+        flex-direction:column  ;
+        justify-content: flex-end;
+    }
+    .btnja{
+        height: 90px;
+        width: 480px;
+        justify-content: center;
+        align-items: center;
+        background-color: #FF6402;
+        border-radius: 5px;
+        margin-top: 42px;
+    }
+    .btnja text{
+        color: #FFFFFF;
+        font-size: 32px;
+    }
+    .loadPos_image{
+        height: 278px;
+        width: 278px;
+        align-items:center;
+        margin-top: 40px;
+        margin-bottom: 30px;
+    }
+    .loadPos{
+        width: 560px;
+        height: 712px;
+        margin-bottom:298px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .text2model{
+        margin-top: 62px;
+    }
+    .text3model{
+        line-height: 40px;
+    }
+    .loadPos .style{
+        font-size: 26px;
+        color: #666666;
+    }
+    /* 列表 */
+    .loadmore_list{
+        width: 100%;
+    }
+    .carUl{
+        flex-direction: row;
+        width: 100%;
+        border-bottom: 1px solid #E5E5E5;
+    }
+    .ul_one .left .title{
+        width: 98%;
+    }
+    .ul_one .left .box{
+        width: 100%;
+        /* position: relative; */
+    }
+
+    .carUlMain{
+        /* margin-right: 30px; */
+        /* margin-left: 30px; */
+    }
+    .ul_one .div .imgBox{
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .ul_one .div .main image{
+        width: 220px;
+        height: 124px;
+        /* align-self: flex-end; */
+        margin-right: 70px;
+    }
+    .ul_one .div .main{
+        flex-direction: column;
+        width: 100%;
+    }
+    .ul_one .left .line{
+        height: 60px;
+        width: 1px;
+        background-color: #E5E5E5;
+        /* align-self: flex-end; */
+
+    }
+    .ul_one .div{
+        height: 226px;
+        width: 50%;
+        border-bottom-width: 1px;
+        border-bottom-color: #f0f0f0;
+    }
+
+    .ul_one .title{
+        height: 82px;
+        flex-direction: column;
+    }
+    .text1{
+        font-size: 32px;
+        color: #2F3540;
+    }
+    .text2{
+        font-size: 24px;
+        color: #818D9A;
+        opacity: 0.9;
+    }
+    .ul_two .div{
+        width: 33.3%;
+        height: 242px;
+    }
+    .ul_two image{
+        width: 200px;
+        height: 140px;
+        margin-left: 10px;
+    }
+    .ul_two text{
+        padding-left: 10px;
+    }
+    .ul_two_box .div{
+        flex-direction: column;
+        margin-top: 30px;
+        border-bottom-width: 1px;
+        border-bottom-color: #f0f0f0;
+    }
+    /* 二手车推荐 */
+    .recommend{
+        height: 120px;
+        width: 100%;
+        background-color: #FFFFFF;
+        padding-left: 30px;
+        line-height: 120px;
+    }
+    .recommend text{
+        font-size: 36px;
+        color: #2F3540;
+    }
+    /* 猜你喜欢 */
+    .recommend2{
+        height: 126px;
+        width: 100%;
+        background-color: #FFFFFF;
+        padding-left: 30px;
+        line-height: 126px;
+    }
+    .recommend2 text{
+        font-size: 36px;
+        color: #2F3540;
+    }
+    .bjColor0{
+        background-color: #F8F8F8;
+    }
+    .heig20{
+        height: 20px;
+        width: 100%;
+    }
+    .heig40{
+        height: 40px;
+        width: 100%;
+    }
+    .price_box2{
+        justify-content: center;
+    }
+    .price_box2 .price text{
+        font-size: 30px;
+        color: #FFFFFF;
+    }
+    .price_box2 .price{
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 670px;
+        height: 74px;
+    }
+    .price_box2 image{
+        height: 20px;
+        width: 12px;
+        margin-top: 30px;
+        margin-left: 14px;
+    }
+
+    .paddtop20{padding-top:20px;}
+    /* 车型 */
+    .chexing_list_box{
+        width: 100%;
+    }
+    .chexing_list_box .list{
+        margin-right: 30px;
+        margin-left: 30px;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .chexing_list_box .list .box{
+        width: 25%;
+        justify-content: center;
+        height: 100px;
+    }
+    .chexing_list_box .list .box image{
+        height: 60px;
+        width: 60px;
+        margin-top: 20px;
+        margin-right: 12px;
+    }
+    .chexing_list_box .list .box text{
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .price_box{
+        justify-content: center;
+    }
+    .price_box .price text{
+        font-size: 32px;
+        color: #FF6402;
+    }
+    .price_box .price{
+        background-color: #FFF9F5;
+        border: 1px solid #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 690px;
+        height: 90px;
+    }
+    .home_btn_box{
+        flex-direction: row;
+        margin-left: 14px;
+        margin-right: 14px;
+    }
+    .home_btn_box .home_btn{
+        width:50%;
+        justify-content: center;
+        height: 150px;
+    }
+    .home_btn_box .home_btn .btn{
+        margin-top: 30px;
+        height: 90px;
+        width: 330px;
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+    }
+    .home_btn_box .home_btn .btn text{
+        color: #ffffff;
+        font-size: 32px;
+    }
+    .banner{
+        height: 240px;
+    }
+    .me{
+        display: flex;
+        flex:1;
+        height: 100%;
+        width: 100%;
+    }
+</style>

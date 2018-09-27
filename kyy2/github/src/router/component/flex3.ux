@@ -1,0 +1,175 @@
+
+
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div style="flex-direction: column;margin-top:100px" >
+        <div class="wrapStyle footer">
+            <div @click="tabListClick(index)" for="{{(index,item) in rowlistdata}}" class="{{(index == 2|| index == 5 || index == 8) ? 'sn':'sn3'}} {{(index == 1|| index == 7|| index == 4 || index == 10) ? 'sncenter':''}}" >
+                <div class="{{(selectListIndex == index) ? 'tabBtnActive':'tabBtn'}}">
+                    <text class="{{(selectListIndex == index) ? 'select':'normal'}}">{{item.title}}</text>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+    .wrapStyle{
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .sn{
+        justify-content: flex-end;
+        margin-top: 30px;
+        width:33.3%
+    }
+    .sn3{
+        justify-content: flex-start;
+        margin-top: 30px;
+        width:33.3%
+    } 
+    .sncenter{
+        justify-content: center;
+        margin-top: 30px;
+        width:33.3%
+    }
+    .tabBtn{
+        height: 70px;
+        width: 210px;
+        border: 1px solid #DDDDDD;
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+    }
+    .tabBtnActive{
+        height: 70px;
+        width: 210px;
+        border: 1px solid #FF6D02;
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+    }
+    .wrapStyle .div{
+        border: 1px solid #818D9A;
+        border-radius: 5px;
+        font-size: 26px;
+        color: #000000;
+        height: 70px;
+        width: 200px;
+        padding-left: 20px;
+        padding-right: 20px;
+        /* margin-left: 20px; */
+    }
+    .wrapStyle .div text{
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .wrapStyle .div input{
+        font-size: 26px;
+        padding-right: 10px;
+    }
+    .wrapStyle .btn{
+        background-color: #D6D6D6;
+        border-radius: 5px;
+        font-size: 26px;
+        color: #000000;
+        height: 70px;
+        width: 210px;
+        justify-content: center;
+        align-items: center;
+    }
+    .wrapStyle .btnSubmit{
+        background-color: #FF6D02;
+        border-radius: 5px;
+        
+        height: 70px;
+        width: 210px;
+        justify-content: center;
+        align-items: center;
+    }
+    .none{
+        display: none;
+    }
+    .select {
+        color: #FF6D02;
+        height: 110px;
+        font-size: 26px;
+    }
+    .normal {
+        height: 110px;
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        /* animation-delay:2s; */
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        /* animation-delay:2s; */
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            transform: translate(0, -40px);
+            opacity: 0.2;
+        }
+        to {
+            transform: translate(0, 0px);
+            opacity: 1;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.9;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+
+</style>
+
+<script>
+    import router from '@system.router';
+    import prompt from '@system.prompt'
+
+    export default {
+        props: [
+            'rowlistdata',
+            'drawershow'
+        ],
+        data: {
+            selectListIndex:0,
+            input1: '',
+            input2: '',
+            submitGo: false
+        },
+        tabListClick(index){
+            console.log('index')
+            this.selectListIndex = index;
+            // this.$on('webviewChange', this.webviewChange)
+            // this.$emit('webviewChange', { params: '额外参数' })
+            // this.$dispatch('webviewChange', { })
+        },
+        maskClick() {
+            this.drawershow = false
+        },
+
+        //input 是 空 換成 0
+        inputF(value) {
+            if(value == '') {
+                return 0
+            } 
+            return value
+        },
+        
+    }
+</script>

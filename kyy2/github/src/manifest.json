@@ -1,0 +1,88 @@
+{
+  "package": "com.ucarQyy.app",
+  "name": "淘车二手车",
+  "versionName": "1.1.1",
+  "versionCode": "4",
+  "minPlatformVersion": "101",
+  "icon": "/Common/logo.png",
+  "features": [
+    { "name": "system.prompt" },
+    { "name": "system.router" },
+    { "name": "system.shortcut" },
+    {"name": "system.webview"},
+    {"name": "system.fetch" },
+    {"name": "system.geolocation"},
+    {"name": "system.storage"},
+    {"name": "system.shortcut"},
+    {"name": "system.device"},
+    {"name": "system.network"}
+  ],
+  "permissions": [
+    { "origin": "*" }
+  ],
+  "config": {
+    "logLevel": "off",
+    "designWidth": 750
+  },
+  "router": {
+    "entry": "router/page",
+    "pages": {
+      "router/page": {
+        "component": "index"
+      },
+      "router/component/slider": {
+        "component": "index"
+      },
+      "router/component/timeComponent": {
+        "component": "index"
+      },
+      "router/link_view": {
+        "component": "index"
+      },
+      "router/filterPage": {
+        "component": "index"
+      },
+      "router/brandpage": {
+        "component": "index"
+      },
+      "router/valuationResult": {
+        "component": "index"
+      }
+    }
+  },
+  "display": {
+    "titleBarBackgroundColor": "#414141",
+    "titleBarTextColor": "#FBFBFB",
+    "menu": false,
+    "pages": {
+      "router/page": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/component/slider": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/component/timeComponent": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/link_view": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/filterPage": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/brandpage": {
+        "menu": false,
+        "titleBar": false
+      },
+      "router/valuationResult": {
+        "menu": false,
+        "titleBar": false
+      }
+    }
+  }
+}

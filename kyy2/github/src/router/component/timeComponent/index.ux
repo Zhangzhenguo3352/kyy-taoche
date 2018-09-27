@@ -1,0 +1,510 @@
+
+<import name="header" src="../header"></import>
+<import name="textModel" src="../textModel"></import>
+<!-- <import name="drawer" src="../drawer"></import> -->
+<template>
+    <!-- template里只能有一个根节点 -->
+    <stack>
+        <div class="box-Main demo-page" style="flex-direction: column;">
+            <header showback="{{false}}" title="上牌时间 " titleshow="{{false}}" menu="close" show="{{true}}">
+            </header>
+
+            <textModel textmodel="{{textmodel}}" if="{{showModel}}"></textModel>
+            <stack style="height: 100%;padding-top:100px;width: 100%;">
+                <list id="list" style="flex-direction:column;columns: 1;" @scroll="scrollEvent" class="list">
+                    <block for="item in year">
+                        <list-item type="{{$idx}}" style="flex-direction:column;" ondisappear="showMask(item.letter, $idx, 'b')" onappear="hideMask(item.letter, $idx, 'b')">
+                            <!-- #  部分 -->
+                            
+            
+                            <!-- 下面的部分 -->
+                            <div style="flex-direction:column;" class="">
+                                <text 
+                                    class="titleBOx paddL paddR borTop" 
+                                    style="height: 102px; border-top-color: {{0 == i ? '#ffffff' : '#eeeeee'}}" 
+                                    @click="selectCity(item)"
+                                >
+                                    {{item}}
+                                </text>
+                            </div>
+                        </list-item>
+                    </block>
+                </list>
+
+            </stack>
+        </div>
+        <!-- 抽屉组件 -->
+        <div if="{{drawerShow}}">
+            <stack>
+                <div class="demo-page-right opacity05Show" style="column:1; " @click="hideClick(false)"></div>
+                <list id="listDrawer" type="listDrawer" class="demo-page-right2 transform transformShow" @scroll="scrollEvent2">
+                    <block for="item in month">
+                        <list-item  type="{{$idx}}" >
+                            <div class="list_box" @click="clickRightCity(item)"><text>{{item}}月</text></div>
+                        </list-item>
+                    </block>
+                </list>
+            </stack>
+        </div>
+    </stack>
+</template>
+
+<script>
+    import router from '@system.router';
+    import prompt from '@system.prompt'
+    import fetch from '@system.fetch'
+    import {
+        connect
+    } from 'quickapp-redux'
+    import storage from '@system.storage'
+    import geolocation from '@system.geolocation'
+    import { autoGovernment, citys } from '../../../util/areaData.js'
+    import { provinces } from '../../../util/province.js'
+    import { inItdata } from '../../../util/dataX.js'
+    import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, rowListHeaderData, utlSpliceFn } from '../../../util/util.js'
+
+    const slider = {
+        data: {
+            letter:'#ABCFGHLNQSTXYZ'.split(''),
+            textmodel: '',
+            showModel: false,
+            list: provinces,
+            text:'#',
+            num: 0,
+            scrollTrue: true,
+            currnetData: null,
+            initBok: false,
+            titleShow: false,
+            titleShow2: true,
+            b : true,
+            isrefresh: '',
+            timer: null,
+            cityList: [],
+            currentIndex: '',
+            city: '',
+            drawerShow: false,
+            location: '',
+            rotate: false, // 刷新图标 按钮 是否旋转
+            valuationState: 0,
+            valuationCityData: {},
+
+            year: [],
+            month: [1,2,3,4,5,6,7,8,9,10,11,12],
+            timeData_year : '',
+            timeData_month: '',
+            timeData: {
+                year: '',
+                month: ''
+            }
+        },
+
+        onInit() {
+            console.log('init')
+        },
+
+        onShow(){
+            console.log('cityType', JSON.stringify(this.cityType))
+        },
+        
+        // 点击 抽屉里的 右侧城市
+        clickRightCity(month) {
+            this.state.timeData.year = this.timeData_year
+            this.state.timeData.month = month
+            this.dispatch({ type: 'set', data: {timeData: this.state.timeData} })
+            router.back()
+        },
+        // 根据状态 显现 城市数据
+        showCityData() {
+           
+            if(this.cityType == 3) {
+                this.dispatch({ type: 'set', data: {valuationState: 3} })
+            }
+            console.log('cccc', this)
+        },
+        // 选择城市
+        selectCity(item){
+            this.drawerShow = true
+            this.timeData_year = item
+        },
+
+
+        // 让 title 为 # 时 消失
+        titleShowFn( key ) {
+            if(key == '#') {
+                this.titleShow = false
+            } else {
+                this.titleShow = true
+            }
+        },
+        
+        // 谁消失了
+        showMask (item, idx, b) { 
+            if(b == 'b') {
+                this.b = true
+                if(!this.scrollTrue) return; 
+                this.titleShow2 = true
+                this.text = this.letter[idx+1]
+                this.num = idx
+                this.titleShowFn(this.letter[idx+1])
+            } else {
+                this.b = false
+                this.titleShow2 = false
+            }
+        },
+
+        // list 滚动 事件
+        scrollEvent(e) { 
+            if(this.b) {
+                if(e.scrollY >= 0) { // 往下滚动
+                    this.scrollTrue = true
+                    this.initBok = false
+                } else { 
+                    this.scrollTrue = false
+                    this.initBok = true
+                }
+            }
+        },
+
+        // 谁出现了
+        hideMask (item, idx, b) {  
+            // 加载页面时，自动触发所有 的 元素， 因此过滤掉元素
+            if(b == 'b') {
+                this.b = true
+                if(!this.initBok) return
+                if(this.scrollTrue) return; 
+                this.titleShow2 = true
+                this.text = item
+                this.num = idx
+                this.titleShowFn(item)
+            } else {
+                this.b = false
+                this.titleShow2 = false
+            }
+        },
+
+        // 去除 抽屉 list 滚动式触发的方法
+        scrollEvent2() {
+            this.titleShow2 = false
+            this.scrollTrue = false
+            this.initBok = false
+            this.b = false
+        },
+   
+        // 点击 半透明遮罩
+        hideClick() {
+            this.drawerShow = false
+        },
+
+        // 买车 列表数据
+        buyCarListData2(currnetData) {
+            
+            this.$emit('showBuyCarTop')
+            // const { cityId } = this.state.currnetData
+            let keys = this.state.currentRowlistdata
+            let orderid = rowListHeaderData[keys.id].orderid 
+            let ordertype = rowListHeaderData[keys.id].ordertype
+            let url = `${inItdata.http}?v=${inItdata.v}&imei=&referrer=1&action=getcarlist&cid=${currnetData.cityId}&entry=taocheapp&pindex=1&orderid=${orderid}&ordertype=${ordertype}${utlSpliceFn(this.state.labeldata)}`
+            // let url = `${inItdata.http}?v=${inItdata.v}&ordertype=0&imei=&referrer=1&action=getcarlist&cid=306&entry=taocheapp&pindex=1&orderid=0`
+            ajaxFn(fetch, url, {}).then((res) => { 
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    this.dispatch({ type: 'set', data: {isrefresh: false} })
+                    if(jsonParse.status == '100') {
+                        this.dispatch({ type: 'set', data: {buyCarListData:jsonParse.data} })
+                        router.back()
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        }) 
+                        router.back()
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                    router.back()
+                }
+            })
+        },
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            // console.log('component', component, JSON.stringify(dataPatch))
+            // component.$page.setTitleBar({ text: dataPatch.state.a })
+            component.title = dataPatch.state.title
+            component.valuationState = dataPatch.state.valuationState
+            component.valuationCityData = dataPatch.state.valuationCityData
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+            component.currnetData = dataPatch.state.currnetData
+            component.labeldata = dataPatch.state.labeldata
+            component.isrefresh = dataPatch.state.isrefresh
+            component.timeData = dataPatch.state.timeData
+            component.year = dataPatch.state.year
+            
+            
+        }
+    }
+
+    export default connect(
+        // mapStateToProps
+        mapStateToData,
+        fn
+    )(slider)
+</script>
+
+<style>
+    .loading {
+        animation-name: loading;
+        animation-timing-function: linear;
+        animation-duration: 300ms;
+        animation-iteration-count: infinite;
+    }
+
+
+    @keyframes loading {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    /* 抽屉 */
+    .list_box{
+        height: 114px;
+        flex-grow: 1;
+        background-color: #ffffff;
+        border-bottom-width: 1px;
+        border-bottom-color: #e3e3e3;
+        padding-left: 38px;
+    }
+    .red{
+        background-color: #ff4e00;
+    }
+    .list_box text{
+        font-size: 30px;
+        color: #001414;
+    }
+    .demo-page-right {
+        
+    }
+    .demo-page-right2 {
+        
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        /* animation-delay:2s; */
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #000000;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        opacity: 0;
+        height: 90%;
+        
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        animation-delay:.5ms;
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 0.5;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.5;
+            height: 100%
+        }
+        to {
+            opacity: 0;
+            height: 0;
+            width: 0;
+            display: none;
+            background-color: #339933;
+        }
+    }
+    .transform {
+    }
+    .transformShow {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformShow;
+        /* animation-delay:2s; */
+        animation-duration: 200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+        width: 532px;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        position: fixed;
+        right: 0px;
+        top:100px;
+        height: 90%;
+    }
+    .transformHide {
+        
+        /*transform: translateX(200px);*/
+        animation-name: transformHide;
+        /* animation-delay:2s; */
+        animation-duration: 1200ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+
+    @keyframes transformShow {
+        from {
+            transform: translate(540px 0);
+        }
+        to {
+            transform: translate(0px 0px);
+        }
+    }
+    @keyframes transformHide {
+        from {
+            transform: translate(0 0);
+        }
+        to {
+            transform: translate(840px 0px);
+        }
+    }
+    /*  */
+    .borTop{
+        border-top-width: 1px;
+        /* border-top-color: #eeeeee; */
+    }
+    .warp {
+        flex-wrap: wrap;
+        columns: 4;
+        flex-direction: row;
+    }
+    .big{
+        flex-grow: 1;
+        justify-content:space-between  ;
+    }
+    .big text{
+        height: 72px;
+        width: 144px;
+        border: 1px solid #d8d8d8;
+        border-radius: 10px;
+        text-align: center;
+        color : #141c27;
+        font-size: 26px;
+        margin-bottom: 14px;
+        /* margin-right: 28px; */
+    }
+    .bj1Color{
+        background-color: #f8f8f8;
+        flex-grow: 1;
+        height: 58px;
+    }
+    .paddL{padding-left: 30px;}
+    .paddR{
+        padding-right: 48px;
+    }
+    .currentCityBox{
+        flex-grow: 1;
+        height: 54px;   
+        padding-left: 30px;
+        justify-content: space-between;
+    }
+    .currentCityBox .img1{
+        width: 35px;
+        height: 42px;
+        margin-top: 6px;
+        margin-right: 26px;
+    }
+    .currentCityBox .img2{
+        height: 36px;
+        width: 36px;
+        margin-top: 10px;
+        margin-right: 22px;
+    }
+    .currentCityBox .text1{
+        font-size: 36px;
+        color: #ff4e00;
+    }
+    .currentCityBox .text2{
+        font-size: 26px;
+        color: #a2a6a5;
+    }
+    .titleBOx{
+        background-color: #ffffff;
+        flex-grow: 1;
+        width: 100%;
+        color: #00000c;
+        font-size: 30px;
+    }
+    .height-50 {
+        height: 56px;
+    }
+    .leftText{
+        justify-content: flex-start;
+        flex-grow: 1;
+    }
+    .bg-red {
+        flex-grow: 1;
+        background-color: #f8f8f8;
+    }
+
+    .flexRight{
+        width: 40px;
+        height:78%;
+        position: fixed;
+        top: 156px;
+        background-color: #ffffff;
+        right:0px;
+        /* justify-content: center; */
+        align-items: center;
+        flex-direction:column;;
+    }
+    .flexRight .divtext{
+        height: 70px;
+        /* width:40px; */
+        flex-direction:column;;
+        justify-content: center;
+        width: 40px;
+        background-color: #ffffff;
+    }
+    .flexRight .divtext text{
+        text-align: center;
+        color: #ff5800;
+    }
+    .style0{
+        flex-shrink: 0;
+        width: 130px;
+        flex-shrink: 0;
+        flex-basis: 190px;
+    }
+    .demo-page {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+

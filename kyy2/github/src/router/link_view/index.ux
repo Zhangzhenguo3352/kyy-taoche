@@ -1,0 +1,236 @@
+<import name="loading"  src="../../Template/loading"></import>
+<import name="header" src="../../router/component/header"></import>
+<template>
+    <div class="box-Main">
+        <div class="slef">
+            <header title="{{title}}" titleshow="{{titleshow}}" prop1="{{true}}" show="{{true}}">
+                <div class="div style0"    @click="openBtnPre">
+                    <image src="../../static/icon/back.png" alt="" />
+                </div>
+            </header>
+            <loading 
+                loading-text="正在加载..." 
+                loading-image="../../Template/loading.png" 
+                loading-show="{{isLoading}}" 
+            ></loading>
+            <web 
+                id="web" 
+                src="{{url}}" 
+                @pagestart="pagestart"
+                @pagefinish="pagefinish"
+                @titlereceive="titlereceive"
+                @error="error"
+            ></web>
+        </div>
+    </div>
+</template>
+<style>
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+    .demo-page {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 100px;
+        width: 750px;
+    }
+    .slef{
+        flex-direction: column;
+        height: 100%;
+        column: 1;
+    }
+    web{
+        flex:1;
+        margin-top: 100px;
+    }
+    #loading {
+        width: 100%;
+        height: 100%;
+        background-color: #333333;
+        opacity: 0.5;
+        display: none;
+    }
+    .open-bar {
+        padding: 20px;
+        flex-direction: row;
+    }
+    .open-btn {
+        width: 30%;
+        color: #333333;
+        margin: 0 20px;
+        font-size: 24px;
+    }
+    .box-Main{
+        flex-direction: column;
+        height: 100%;
+    }
+    .slef2{
+        height: 100%;
+        width: 100%;
+    }
+    web{
+        margin-top: 100px;
+    }
+    .mian_box{
+        align-items:flex-end;
+        position: fixed;
+        bottom:0;
+        left: 0;
+        height: 100px;
+        border-top-color: #dbdbdb;
+        border-top-width: 1px;
+    }
+    .box{
+        height: 100px;
+        width: 100%;
+    }
+    #tab{
+        height: 100px;
+    }
+    .tab-item {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+    }
+    .tab-icon {
+        width: 50px;
+        height: 50px;
+    }
+    tab-bar {
+        align-items:flex-end;
+        height: 100px;
+        border-top-color: #DDDDDD;
+        border-top-width: 1px;
+    }
+    .normal {
+        color: #818D9A;
+    }
+    .selected {
+        color: #FF6402;
+    }
+</style>
+
+<script>
+    import router from '@system.router';
+    import webview from '@system.webview'
+    import { inItdata } from '../../util/dataX.js'
+    
+    export default {
+       data: {
+           isLoading: false,
+           loadingShow: true,
+           backshow: false,
+           titleshow: true,
+           title: '',
+           xxx: [],
+           xxx2: '',
+           num: 0,
+       },
+       onReady() {},
+       onInit () {
+           this.xxx = []
+           this.url = this.urlName
+       },
+       onShow(){},
+       pagestart(e){
+           this.url = e.url
+           this.isLoading = true;
+           let _this = this;
+           this.$element('web').canBack({
+               callback: function (e) {
+                   _this.$dispatch('webviewChange', { showTab: !e})
+                   _this.backshow = e
+               }
+           });
+       },
+       
+       pagefinish(e){
+           this.isLoading = false;
+           let _this = this;
+           this.$element('web').canBack({
+               callback: function (e) {
+                   _this.$dispatch('webviewChange', { showTab: !e})
+                   _this.backshow = e
+                   
+               }
+           });
+       },
+       openBtnPre(e){
+            let _this = this
+            this.$element('web').canBack({
+                callback: function (e) {
+                    if (e) {
+                        // 加载历史列表中的上一个 URL
+                        _this.$element('web').back()
+                    } else {
+                        router.back()
+                    }
+                    _this.xxx.pop()
+                    _this.num--
+                    _this.title = _this.xxx[_this.num-1]
+                }.bind(this)
+            })
+            // 阻止默认行为，等待异步操作
+            return true
+       },
+       onBackPress(e) {
+           let _this = this
+           this.$element('web').canBack({
+               callback: function (e) {
+                   if (e) {
+                       // 加载历史列表中的上一个 URL
+                       _this.$element('web').back()
+                   } else {
+                       router.back()
+                   }
+                   _this.xxx.pop() 
+                   _this.num--
+                   _this.title = _this.xxx[_this.num-1]
+               }.bind(this)
+           })
+           return true
+       },
+       openBtnReload(){
+           this.$element('web').reload();
+       },
+       // back  找这个就行 pagestart
+       openBtnNext(){
+           this.isLoading = false;
+           let _this = this;
+           this.$element('web').canForward({
+               callback: function (e) {
+                   console.log('openBtnNext')
+                   if (e) {
+                       _this.$element('web').forward()
+                   }
+               }
+           });
+       },
+       titlereceive(e){
+           this.title = e.title
+           this.num++
+           this.num = this.num
+           this.xxx2 = e.title
+           this.xxx.push(e.title)
+           this.isLoading = false;
+           let _this = this;
+           this.$element('web').canBack({
+               callback: function (e) {
+                   _this.$dispatch('webviewChange', { showTab: !e})
+                   _this.backshow = e
+                   
+               }
+           });
+       },
+   }
+</script>

@@ -1,0 +1,143 @@
+
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div style="flex-direction: column;" >
+        <div class="toastBox {{drawershow ? '' : 'none'}}" @click="maskClick"></div>
+        <div class="listHeader_box list {{drawershow ? 'opacity05Show' : 'none'}}" style="flex-direction: column; justify-content:space-between;">
+            <div @click="tabListClick(index)" class="listBox" for="{{(index,item) in rowlistdata}}" >
+                <text class="{{(currentRowlistdata.id == index) ? 'select':'normal'}}">{{item}}</text>
+                <image src="../../static/icon/checked.png" alt="" class="xia_img" if="{{currentRowlistdata.id == index}}"></image>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+    .none{
+        display: none;
+    }
+    .toastBox {
+        flex-direction: column;
+        height: 100%;
+        position: fixed;
+        width: 100%;
+        top: 191px;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+    .list {
+        flex-direction: column;
+        position: fixed;
+        width: 100%;
+        top: 191px;
+        left: 0;
+        background-color: #333333;
+        justify-content: center;
+        align-items: center;
+    }
+    .normal {
+        height: 110px;
+        font-size: 30px;
+        color: #2F3540;
+    }
+    .listBox{
+        width: 100%;justify-content: space-between;
+        align-items: center;
+        border-bottom-width: 1px;
+        border-bottom-color: #ECECEC;
+    }
+    .select {
+        color: #FF6D02;
+        height: 110px;
+        font-size: 30px;
+    }
+    .listHeader_box{
+        background-color: #ffffff;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .xia_img{
+        width: 26px;
+        height: 19px;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        /* animation-delay:2s; */
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            transform: translate(0, -40px);
+            opacity: 0.2;
+        }
+        to {
+            transform: translate(0, 0px);
+            opacity: 1;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.9;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+</style>
+
+<script>
+    import router from '@system.router';
+    import prompt from '@system.prompt'
+    import { carPricData, rowlistdata, rowListPriceData, mainJson, headerArrModel } from '../../util/defaultCarData.js'
+    import {
+        connect
+    } from 'quickapp-redux'
+    const rowList = {
+        props: [
+            'drawershow'
+        ],
+        data: {
+            selectListIndex:0,
+            rowlistdata,
+            currentRowlistdata: {
+                name: '推荐排序',
+                id: 0
+            }
+        },
+        tabListClick(index){
+            this.selectListIndex = index;
+            this.state.currentRowlistdata.id = index
+            this.state.currentRowlistdata.name = rowlistdata[index]
+            this.dispatch({ type: 'set', data: {currentRowlistdata: this.state.currentRowlistdata} })
+            this.$dispatch('rowListClick', { index })
+        },
+        maskClick() {
+            this.drawershow = false
+            this.$dispatch('modelClear', {index: 1})
+        }
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+        }
+    }
+    export default connect(
+        mapStateToData,
+        fn
+    )(rowList)
+</script>

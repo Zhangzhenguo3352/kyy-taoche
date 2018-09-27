@@ -1,0 +1,279 @@
+<!-- @scrollbottom="listScrollBottom" -->
+<template>
+    <div class="demo-page" style="flex-direction:column;columns: 1;">
+        <refresh class="demo-page" refreshing="{{isrefresh}}" @refresh="pageRefresh" style="flex-direction:column;columns: 1;height:  100%;width: 100%;">
+            <list id="list2" style="flex-direction:column;columns: 1;"  @scrollbottom="listScrollBottom">
+                <block  >
+                    <list-item type="{{index}}"  >
+                        <div class="label_box" show="{{labeldata.length}}">
+                                <div class="left">
+                                    <div class="p_t" for="(index,item) in labeldata">
+                                        <div>
+                                            <div class="box" @click="labelClick(item, index)">
+                                                <text>{{item.data.selectName}}</text>
+                                                <image src="../../static/icon/1111.png" alt=""></image>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="right" >
+                                    <div class="content" @click="clearLabelClick">
+                                        <image resize-mode="contain" src="../../static/icon/cleaer-icon.png" alt="图片加载失败"></image>
+                                        <text class="" style="font-size:26px;">清空</text>
+                                    </div>
+                                </div>
+                            </div>
+                    </list-item>
+                    <list-item type="{{index}}" class="buyCarList" for="(index,item) in buyCarListData.Items" show="{{buyCarListData.Items.length}}">
+                        <div show="{{citySelectIndex == index }}" style="height: 80px;background-color: #F5F5F5;justify-content: center;">
+                            <text style="font-size: 26px;color: #818D9A;text-align: center;" show="{{citySelectIndex == 0 }}" >本地暂无该类型车源，以下为您推荐周边车源</text>
+                            <text style="font-size: 26px;color: #818D9A;text-align: center;" show="{{citySelectIndex != 0 }}">该类型车源本地较少，以下为您推荐周边车源</text>
+                        </div>
+                        <div style="" class="borderBottom" @click="goLinkRouter(item, '车源详情')">
+                            <div style="width: 255px;height: 170px;flex-direction:column">
+                                <stack style="width: 255px;height: 170px;" >
+                                    <image
+                                        style="width: 255px;height: 170px;"
+                                        src="{{item.ImageURL2}}"
+                                        class="imgList"
+                                    >
+                                    </image>
+                                    <!-- 淘车认证 -->
+                                    <div
+                                        show="{{item.IsTaocheAuthCar == 0 ? false : true}}"
+                                        style="width: 100px;height: 40px;background-color: #FF6402;justify-content: center;">
+                                        <text style="font-size: 20px;color: #FFFFFF;">淘车认证</text>
+                                    </div>
+                                    <div
+                                        show="{{item.IsOffSiteCPC == 1}}"
+                                        style="width: 60px;height: 40px;background-color: rgba(51, 51, 51, .8);justify-content: center;margin-left: 180px;margin-top: 15px; ">
+                                        <text style="font-size: 20px;color: #FFFFFF;">推广</text>
+                                    </div>
+                                </stack>
+                            </div>
+                            <div style="flex-direction: column;margin-left: 30px;" >
+                                <div  style="width: 405px;margin-top:-8px;height: 84px;align-items: flex-start;justify-content:flex-start;flex-direction: column;">
+                                    <text style="font-size: 32px;color: #2F3540;width:405px;padding-right:15px;padding-top:1px;" lines="2" text-overflow="ellipsis">{{item.BrandName}} {{item.CarName}}</text>
+                                </div>
+                                <div style="flex-direction: row;margin-top: 6px;margin-bottom: 10px">
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;">{{item.BuyCarDateString}}</text>
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;padding-left: 14px;padding-right: 14px;margin-top: -4px;">|</text>
+                                    <text style="font-size: 26px;line-height: 40px;color: #818D9A;">{{item.DrivingMileageText}}</text>
+                                    <text style="font-size: 26px;color: #818D9A;line-height: 40px;padding-left: 14px;padding-right: 14px;margin-top: -4px;" show="{{ item.IsEnvironsCar == 1 || currnetData.cityId == 0 || item.IsOffSiteCPC == 1}}">|</text>
+                                    <text style="font-size: 26px;line-height: 40px;color: #818D9A;" show="{{  item.IsEnvironsCar == 1 || currnetData.cityId == 0 || item.IsOffSiteCPC == 1}}">{{item.CityName}}</text>
+                                </div>
+                                <div style="flex-direction: row;align-items: center;margin-bottom: 10px ">
+                                    <text style="color: #FF6402;font-size: 32px;font-weight: bold;">{{item.DisPlayPrice}}万 </text>
+                                    <text style="font-size: 26px;color: #818D9A;margin-left: 16px;">{{item.DownPayment }}</text>
+                                </div>
+                                <div style="flex-direction: row;align-items: center;margin-bottom: 10px">
+                                    <text for="t in item.UCarLabelList" class="tag" style="color: {{'#'+t.Color}};border-color:{{'#'+t.Color}}">{{t.Text=='认证车'?'品牌认证':t.Text}}</text>
+                                </div>
+                            </div>
+                        </div>
+                    </list-item>
+                    <list-item type="loadMore0" style="justify-content: center;align-items:center;flex-direction: column ;" >
+                        <div type="loadMore3" show="{{isNOData}}" class="demo-page">
+                            <image resize-mode="contain" src="../../static/arr0.png" alt="图片加载失败" style="width: 260px;margin-top: 80px;"></image>
+                            <text style="margin-top: 10px;font-size: 30px;color: #2F3540;">暂时没有这样的车</text>
+                        </div>
+                        <div style="padding-top:10px;margin-bottom: 60px;height: 190px;justify-content: center;align-items:flex-start;">
+                            <progress type="circular" show="{{moreShow == 1}}" style="margin-top: 6px"></progress>
+                            <text style="padding-left: 20px" show="{{moreShow == 1}}">加载更多</text>
+                            <text style="" show="{{moreShow == 2 && !isNOData}}">没有更多数据</text>p
+                            <progress type="circular" show="{{moreShow == 4}}" style="margin-top: 106px;"></progress>
+                            <text style="margin-top: 100px;padding-left: 20px" show="{{moreShow == 4}}" >加载中...</text>
+                        </div>
+                    </list-item>
+  
+                </block>
+            </list>
+        </refresh>
+    </div>
+</template>
+
+<style>
+    .bj1{background-color: #FF6402;}
+    .bj2{background-color: #339900;}
+    .box{
+        padding-left: 13px;
+        padding-right: 13px;
+        height: 50px;
+        border-radius: 6px;
+        background-color: #ffffff;
+        align-items: center;
+        margin-bottom: 20px;
+        margin-right: 34px;
+    }
+    .box text{
+        font-size: 26px;
+        color: #818D9A;
+    }
+    .box image{
+        width: 22px;
+        height: 22px;
+        margin-left: 21px;
+    }
+    .none{
+        display: none;
+    }
+    .buyCarList{
+        margin-left: 30px;
+        margin-right: 30px;
+        flex-direction: column;
+    }
+    .label_box{
+        width: 100%;
+        padding-left: 30px;
+        padding-top: 20px;
+        background-color: #F5F5F5;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .tag{
+        font-size: 20px;
+        border-width: 1px;
+        border-radius: 2px;
+        border-style: solid;
+        margin-right: 8px;
+        line-height: 20px;
+        padding: 0 5px;
+    }
+    .label_box .left{
+        flex: 1;
+        flex-wrap: wrap;
+    }
+    .label_box .right{
+        width: 122px;
+        margin-top: 5px;
+    }
+    .label_box .right .content{
+        align-items: flex-start;
+        height: 40px;
+        padding-top:5px;
+        padding-bottom: 10px;
+        padding-right: 10px;
+        margin-bottom: 24px;
+    }
+    .label_box .right image{
+        height: 30px;
+        width: 30px;
+        margin-top: -1px;
+        margin-right: 10px;
+    }
+    .label_box .right text{
+        font-size: 27px;
+        color: #B0B3B4;
+        margin-top: 0px;
+    }
+    .demo-page {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .borderBottom{
+        border-bottom-width: 1px;
+        border-bottom-color: #f0f0f0;
+        flex-direction: row;
+        padding-top:36px;
+        padding-bottom:20px;
+    }
+    .paddingleft10{padding-left: 10px}
+    .paddingright10{padding-right: 10px}
+    .paddingtop5{padding-top: 5px}
+    .paddingbottom5{padding-bottom: 5px}
+    .top40{
+        padding-top: 50px;
+    }
+</style>
+<script>
+    import router from '@system.router';
+    import fetch from '@system.fetch'
+    import { connect } from 'quickapp-redux'
+    import prompt from '@system.prompt'
+    import { inItdata } from '../../util/dataX.js'
+    import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear } from '../../util/util.js'
+
+    const lodaingDrawer = {
+        props: [
+            'labeldata',
+        ],
+        data: {
+            buyCarListData: [],
+            pageIndex : 1,
+            labelShow: true,
+            citySelectIndex: -1,
+            isrefresh: '',
+            moreShow: 0,
+            isBottom: false,
+            currnetData: {},
+            carCityName: false,
+            isNOData: false
+        },
+        listScrollBottom() {
+            this.state.PageIndex += 1
+            this.$dispatch('listScrollBottom', { })
+        },
+        aaa(item, index) {
+            console.log('item', item, index)
+        },
+        pageRefresh: function (e) {
+            this.$dispatch('pageRefresh', {})
+        },
+        onInit() {
+            this.$on('showBuyCarTop', this.showBuyCarTop)
+            this.$on('showBuyCarTop22', this.showBuyCarTop22)
+        },
+        showBuyCarTop() {
+            this.$element('list2').scrollTo({
+                index: 0
+            });
+        },
+        onShow() {
+            console.log('11 onShow')
+        },
+        labelClick(item, index) {
+            this.$dispatch('labelClick', {item, index})
+        },
+        clearLabelClick() {
+            this.$dispatch('clearLabelClick', this.clearLabelClick)
+        },
+        // 去 webView 页面
+        goLinkRouter(urlName, titleName) {
+            router.push({
+                uri: 'router/link_view',
+                params: {
+                    urlName: `http://cooper.m.taoche.com/kuaiyingyong/buycar/carinfo2017.aspx?ucarid=${urlName.UcarID}&manufacturer=${this.state.phoneInfo.brand}`,
+                    titleName
+                }
+            })
+        },
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.currnetData = dataPatch.state.currnetData
+            component.labeldata = dataPatch.state.labeldata
+            component.buyCarListData = dataPatch.state.buyCarListData
+            component.pageIndex = dataPatch.state.pageIndex
+            component.isrefresh = dataPatch.state.isrefresh
+            component.moreShow = dataPatch.state.moreShow
+            component.phoneInfo = dataPatch.state.phoneInfo
+            component.isNOData = dataPatch.state.isNOData
+            let arr = dataPatch.state.buyCarListData.Items
+            for(var i = 0; i < arr.length ; i++) {
+                if(arr[i].IsEnvironsCar == 1 ) {
+                    component.citySelectIndex = Number(i)
+                    break; 
+                } else {
+                    component.citySelectIndex = -1
+                }
+            }
+        }
+    }
+    export default connect( mapStateToData, fn )(lodaingDrawer)
+</script>
