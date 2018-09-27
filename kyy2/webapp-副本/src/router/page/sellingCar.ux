@@ -1,0 +1,230 @@
+<!-- 卖车 -->
+<import name="header" src="../../router/component/header"></import>
+<import name="loadmore" src="../../router/component/loadmore"></import>
+<import name="toast"  src="../../router/component/toast"></import>
+<template>
+    <div style="flex-direction: column;margin-top:90px" class="me">
+        <!-- banner -->
+        <stack class="banner" style="flex-direction: column">
+            <image src="../../static/sellCar.png" alt="图片加载失败"></image>
+            <div class="sellCar_title">
+                <image src="../../static/icon/finger.png" alt="图片加载失败"></image>
+                <text>留下手机号，我们帮您卖</text>
+            </div>
+            <!-- 免费估价 -->
+            <div class="price_box2">
+                <input placeholder="请输入您的手机号" id="input2" type="number" class="submit" @change="inpuChange" value="{{inputContent}}"/>
+            </div>
+        </stack>
+        <!-- 免费估价 -->
+        <div class="price_box">
+            <div class="price" @click="freeValuation">
+                <text>提交</text>
+            </div>
+        </div>
+        <!-- 全局提醒用户 model -->
+        <toast drawershow="{{drawershow}}" if="{{drawershowtype}}" text="{{text}}"></toast>
+    </div>
+</template>
+<script>
+    import device from '@system.device'
+    import router from '@system.router';
+    import fetch from '@system.fetch'
+    import prompt from '@system.prompt'
+    import storage from '@system.storage'
+    import geolocation from '@system.geolocation'
+    import { connect } from 'quickapp-redux'
+    import { inItdata } from '../../util/dataX.js'
+    import { CC2PY } from '../../util/pinyin.js'
+    import { ajaxFn, getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, phoneNumberFn, getlocaCurrentCity } from '../../util/util.js'
+
+    const sellingCar = {
+        data: {
+            res: [],
+            propsmaskshow: 'hide',
+            https: '',
+            inputContent: '',
+            drawershow: '',
+            drawershowtype: '',
+            text: ''
+        },
+        // input  事件
+        inpuChange(e) {
+            this.inputContent = e.value;
+        },
+        //input2 失去焦点
+        input2Focus() {
+            this.$element('input2').focus({
+                focus: false
+            });
+        },
+        onInit () {
+            this.$page.setTitleBar({text: 'popup'})
+        },
+        // 取消掉 显现框
+        showModelFn(text) {
+            clearTimeout(timer1)
+            clearTimeout(timer2)
+            var timer1 = null;
+            var timer2 = null;
+            this.drawershow = true
+            this.drawershowtype = true
+            this.text = text
+            timer1 = setTimeout(() => {
+                clearTimeout(timer1)
+                this.drawershow = false
+                timer2 = setTimeout( () => {
+                    this.drawershowtype = false
+                    clearTimeout(timer2)
+                }, 500)
+            }, 1800)
+        },
+        // 验证
+        // 免费估价按钮
+        freeValuation() {
+            const { cityId } = this.state.currnetData
+            let url = `${inItdata.http}?v=${inItdata.v}&action=HighPriceCarSourceClue&mobile=${this.inputContent}&cityId=${cityId}&manufacturer=${this.state.phoneInfo.brand}`
+            console.log('卖车 url', url )
+            if(phoneNumberFn(this.inputContent)) {
+                ajaxFn(fetch, url, {}).then((res) => {
+                    if(res.code == '200') {
+                        var data = JSON.parse(res.data)
+                        if (data.status == '100') {
+                            this.showModelFn('提交成功，客服会尽快与您联系')
+                            this.input2Focus()
+                            this.inputContent = ''
+                        } else {
+                            this.showModelFn(data.msg)
+                            this.input2Focus()
+                            this.inputContent = ''
+                        }
+                    } else {
+                        this.showModelFn(res.msg)
+                    }
+                })
+            } else {
+                if(this.inputContent == '') {
+                    this.showModelFn('请输入您的手机号')
+                } else {
+                    this.showModelFn('请输入正确的手机号')
+                }
+            }
+        }
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            component.drawershow = dataPatch.state.drawershow
+            component.drawershowtype = dataPatch.state.drawershowtype
+            component.currnetData = dataPatch.state.currnetData
+            component.phoneInfo = dataPatch.state.phoneInfo
+        }
+    }
+    export default connect( mapStateToData, fn )(sellingCar)
+</script>
+<style>
+    .model_init_box{
+        align-items: center;
+        width: 100%;height: 100%;
+        flex-direction:column  ;
+        justify-content: center;
+    }
+    .loadPos_image{
+        height: 278px;
+        width: 278px;
+        align-items:center;
+        margin-top: 40px;
+        margin-bottom: 30px;
+    }
+    .loadPos{
+        width: 560px;
+        height: 712px;
+        border-radius: 12px;
+        background-color: #ffffff;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .sellCar_title {
+        margin-top: 388px;
+    }
+    .sellCar_title image {
+        margin-left: 30px;
+    }
+    .sellCar_title text {
+        font-size: 28px;
+        color: #818D9A;
+        margin-left: 20px;
+    }
+    .submit {
+        height: 100px;
+        width: 690px;
+        background-color: #ffffff;
+        border: 1px solid #DDDDDD;
+        font-size: 28px;
+        padding-left: 30px;
+        padding-right: 30px;
+        border-radius: 5px;
+        box-shadow: 0 5px 10px 0 rgba(134, 138, 139, 0.12);
+    }
+    .bjColor0 {
+        background-color: #F8F8F8;
+    }
+    .heig20 {
+        height: 20px;
+        width: 100%;
+    }
+    .heig40 {
+        height: 40px;
+        width: 100%;
+    }
+    .price_box2 {
+        margin-top: 452px;
+        justify-content: center;
+    }
+    .price_box2 .price text {
+        font-size: 30px;
+        color: #FFFFFF;
+    }
+    .price_box2 .price {
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 670px;
+        height: 74px;
+    }
+    .price_box2 image {
+        height: 20px;
+        width: 12px;
+        margin-top: 30px;
+        margin-left: 14px;
+    }
+    .price_box {
+        justify-content: center;
+        margin-top: 40px;
+    }
+    .price_box .price text {
+        font-size: 32px;
+        color: #FFFFFF;
+    }
+    .price_box .price {
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 690px;
+        height: 90px;
+    }
+    .banner {
+        height: 552px;
+    }
+    .me {
+        display: flex;
+        flex: 1;
+        height: 100%;
+        width: 100%;
+    }
+</style>

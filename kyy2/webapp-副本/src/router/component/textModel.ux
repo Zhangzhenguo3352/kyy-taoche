@@ -1,0 +1,37 @@
+<template>
+        <!-- template里只能有一个根节点 -->
+        <div class="textModel">
+            <text>{{textmodel}}</text>
+        </div>
+    </template>
+    
+    <style>
+        .textModel{
+            position: fixed;
+            top: 580px;
+            left: 280px;
+            height: 200px;
+            width: 200px;
+            background-color: rgba(51, 51, 51, 0.7);
+            justify-content: center;
+            border-radius: 10px;
+            align-items: center;
+            flex-direction: column
+            
+        }
+        .textModel text{
+            font-size: 120px;
+            color: #ffffff;
+        }
+    
+    </style>
+    
+    <script>
+        export default {
+            props: [
+                'textmodel',
+            ],
+            data: {
+            },
+        }
+    </script>

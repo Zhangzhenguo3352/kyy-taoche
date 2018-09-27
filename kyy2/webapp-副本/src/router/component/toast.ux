@@ -1,0 +1,70 @@
+<!-- 公用的 Mash model 控件 -->
+<template>
+    <div class="toastBox {{drawershow ? 'opacity05Show' : 'opacity0Hide'}}" >
+        <div class="box">
+            <text>{{text}}</text>
+        </div>
+    </div>
+</template>
+<style>
+    .toastBox {
+        flex-direction: column;
+        height: 80%;
+        position: fixed;
+        top: 100px;
+        left: 0;
+        justify-content: center;
+        align-items: center;
+    }
+    .box {
+        border-radius: 6px;
+        background-color: #000000;
+    }
+    .box text {
+        padding-left: 80px;
+        padding-top: 40px;
+        padding-bottom: 40px;
+        padding-right: 80px;
+        color: #ffffff;
+        font-size: 30px;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        animation-duration: 1000ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            opacity: 0;
+            height: 0
+        }
+        to {
+            opacity: 0.9;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.9;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+</style>
+<script>
+    export default {
+        props: [
+            'drawershow',
+            'text'
+        ],
+        onInit() { },
+        onShow() { },
+    }
+</script>

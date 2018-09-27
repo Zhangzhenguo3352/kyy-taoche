@@ -1,0 +1,783 @@
+<!-- 筛选展开 -->
+<import name="loading"  src="../../Template/loading"></import>
+<import name="header" src="../../router/component/header"></import>
+<template>
+    <div class="demo-page flex1" >
+        <header title="{{title}}" titleshow="{{titleshow}}" prop1="{{true}}" show="{{true}}">
+            <div class="div style0"   @click="backFn" >
+                <image src="../../static/icon/back.png" alt="" />
+            </div>
+        </header>
+        <list id="list" style="flex-direction:column;columns: 1;padding-bottom: 100px;padding-top:90px">
+            <block for="(i,item) in dataList" >
+                <list-item type="{{i}}" style="" if="{{item.title == '级别'}}">
+                    <div style="flex-direction: column;width: 100%;">
+                            <div style="flex-direction: column;flex:1;width: 100%;" class="filterBox1">
+                                <div class="title">
+                                    <text>{{item.title}}</text>
+                                </div>
+                                <div class="wrapStyle footer" style="padding-bottom: 30px; ">
+                                    <div  style="column:3;width: 33.3%;justify-content: flex-start" @click="tabListClick(index, item, i)" type="{{index}}" for="{{(index,item) in item.data}}" class="{{(index == 2|| index == 5 || index == 8) ? 'sn':'sn3'}} {{(index == 1|| index == 7|| index == 4 || index == 10) ? 'sncenter':''}}" >
+                                        <div class="{{(filterdata[i] == index) ? 'tabBtnActive1':'tabBtn1'}}" style="width: 210px;margin-left: 22px;">
+                                            <image src="../../static/icon-car/active/{{index}}.png" alt="" show="{{(filterdata[i] == index)}}" class="carImage1"/>
+                                            <image src="../../static/icon-car/{{index}}.png" alt="" show="{{(filterdata[i] != index)}}"  class="carImage1"//>
+                                            <text class="{{(filterdata[i] == index) ? 'select1':'normal1'}}">{{item.title}}</text>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </list-item>
+                <list-item type="list2" style="" else>
+                    <div style="flex-direction: column;width: 100%;">
+                        <div style="flex-direction: column;flex:1;width: 100%;" >
+                                <div style="flex-direction: column;flex:1;width: 100%;" class="filterBox" if="{{ item.title == '车源特色（可多选）'}}">
+                                    <div class="title">
+                                        <text>{{item.title}}</text>
+                                    </div>
+                                    <div class="wrapStyle footer" style="padding-bottom: 30px; ">
+                                        <div  style="column:3;width: 33.3%;justify-content: flex-start" @click="tabListClick2(index, b, i)" type="{{index}}" for="{{(index,b) in item.data}}" class="{{(index == 2|| index == 5 || index == 8) ? 'sn':'sn3'}} {{(index == 1|| index == 7|| index == 4 || index == 10) ? 'sncenter':''}}" >
+                                            <div class="{{(filterdata[0][index] != -1) ? 'tabBtnActive':'tabBtn'}}" style="width: 210px;margin-left: 22px;">
+                                                <text class="{{(filterdata[0][index] != -1) ? 'select':'normal'}}">{{b.title}}</text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="flex-direction: column;flex:1;width: 100%;" class="filterBox" else>
+                                    <div class="title">
+                                        <text>{{item.title}}</text>
+                                    </div>
+                                    <div class="wrapStyle footer" style="padding-bottom: 30px; ">
+                                        <div  style="column:3;width: 33.3%;justify-content: flex-start" @click="tabListClick_a(index, b, i)" type="{{index}}" for="{{(index,b) in item.data}}" class="{{(index == 2|| index == 5 || index == 8) ? 'sn':'sn3'}} {{(index == 1|| index == 7|| index == 4 || index == 10) ? 'sncenter':''}}" >
+                                            <div class="{{(filterdata[i] == index) ? 'tabBtnActive':'tabBtn'}}" style="width: 210px;margin-left: 22px;">
+                                                <text class="{{(filterdata[i] == index) ? 'select':'normal'}}">{{b.title}}</text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </list-item>
+            </block>
+        </list>
+        <div class="footerFilterBox">
+            <div class="flex1 left" @click="clearAll"><text>重置</text></div>
+            <div class="flex1 right" @click="filterSubmit" show="{{goSubmit == 0 ? false : true}}"><text>确定</text></div>
+            <div class="flex1 rightfalse" show="{{goSubmit == 0 ? true : false}}"><text>暂无符合条件车款</text></div>
+        </div>
+    </div>
+</template>
+<style>
+    .filterBox .title{
+        background-color: #F8F8F8;
+        height: 56px;
+        padding-left: 30px;
+    }
+    .filterBox .title text{
+        font-size: 26px;
+        color: #818D9A;
+    }
+    .footer{
+        width: 100%;
+    }
+    .wrapStyle{
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .sn{
+        justify-content: flex-start;
+        margin-top: 30px;
+    }
+    .sn3{
+        justify-content: center;
+        margin-top: 30px;
+    } 
+    .sncenter{
+        justify-content: center;
+        margin-top: 30px;
+    }
+    .tabBtn{
+        height: 70px;
+        border: 1px solid #DDDDDD;
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+    }
+    .tabBtnActive{
+        height: 70px;
+        border: 1px solid #FF6D02;
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+    }
+    .wrapStyle .div{
+        border: 1px solid #818D9A;
+        border-radius: 5px;
+        font-size: 26px;
+        color: #000000;
+        height: 70px;
+    }
+    .wrapStyle .div text{
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .wrapStyle .div input{
+        font-size: 26px;
+    }
+    .wrapStyle .btn{
+        background-color: #D6D6D6;
+        border-radius: 5px;
+        font-size: 26px;
+        color: #000000;
+        height: 70px;
+        justify-content: center;
+        align-items: center;
+    }
+    .wrapStyle .btnSubmit{
+        background-color: #FF6D02;
+        border-radius: 5px;
+        height: 70px;
+        justify-content: center;
+        align-items: center;
+    }
+    .none{
+        display: none;
+    }
+    .select {
+        color: #FF6D02;
+        height: 110px;
+        font-size: 26px;
+    }
+    .normal {
+        height: 110px;
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .opacity05Show{
+        animation-name: opacity05Show;
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    .opacity0Hide{
+        animation-name: opacity0Hide;
+        animation-duration: 500ms;
+        animation-fill-mode: forwards ; /*  去了不要回来 */
+        animation-iteration-count: 1;
+    }
+    @keyframes opacity05Show {
+        from {
+            transform: translate(0, -40px);
+            opacity: 0.2;
+        }
+        to {
+            transform: translate(0, 0px);
+            opacity: 1;
+        }
+    }
+    @keyframes opacity0Hide {
+        from {
+            opacity: 0.9;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    .carImage1{
+        width: 150px;
+        height: 60px;
+    }
+    .wrapStyle .div text{
+        font-size: 26px;
+        color: #2F3540;
+    }
+    .filterBox1 .title{
+        background-color: #F8F8F8;
+        height: 56px;
+        padding-left: 30px;
+    }
+    .filterBox1 .title text{
+        font-size: 26px;
+        color: #818D9A;
+    }
+    .sn{
+        justify-content: flex-start;
+        margin-top: 30px;
+    }
+    .sn3{
+        justify-content: center;
+        margin-top: 30px;
+    }
+    .sncenter{
+        justify-content: center;
+        margin-top: 30px;
+    }
+    .normal1 {
+        font-size: 26px;
+        color: #2F3540;
+        padding-top: 20px;
+    }
+    .none{
+        display: none;
+    }
+    .select1 {
+        color: #FF6D02;
+        font-size: 26px;
+        padding-top: 20px;
+    }
+    .tabBtn1{
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .tabBtnActive1{
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .wrapStyle{
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .footerFilterBox{
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 100px;
+        border-top-width: 1px;
+        border-top-color: #DDDDDD;
+    }
+    .footerFilterBox .flex1{
+        width: 50%;
+        height: 100px;
+        justify-content: center;
+    }
+    .footerFilterBox .left{
+        background-color: #ffffff;;
+    }
+    .footerFilterBox .left text{
+        font-size: 32px;
+        color: #394043;
+    }
+    .footerFilterBox .right{
+        background-color: #FF6402;
+    }
+    .footerFilterBox .rightfalse{
+        background-color: #cccccc;
+    }
+    .footerFilterBox .right text{
+        font-size: 32px;
+        color: #FFFFFF;
+    }
+    .footerFilterBox .rightfalse text{
+        font-size: 32px;
+        color: #FFFFFF;
+    }
+    .demo-page {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .flex1{
+        flex: 1;
+    }
+    .style0{
+        flex-shrink: 0;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .style0 image{
+        height: 36px;
+        margin-left: 30px;
+    }
+    .demo-page {
+        display: flex;
+        flex-direction: column;
+    }
+    .slef{
+        flex-direction: column;
+        height: 100%;
+        column: 1;
+    }
+    web{
+        flex:1;
+        margin-top: 100px;
+
+    }
+    #loading {
+        width: 100%;
+        height: 100%;
+        background-color: #333333;
+        opacity: 0.5;
+        display: none;
+    }
+    .open-bar {
+        flex-direction: row;
+    }
+    .open-btn {
+        width: 30%;
+        color: #333333;
+        margin: 0 20px;
+        font-size: 24px;
+    }
+    .box-Main{
+        flex-direction: column;
+        height: 100%;
+    }
+    .slef2{
+        height: 100%;
+        width: 100%;
+    }
+    web{
+        margin-top: 100px;
+    }
+    .mian_box{
+        align-items:flex-end;
+        position: fixed;
+        bottom:0;
+        left: 0;
+        height: 100px;
+        border-top-color: #dbdbdb;
+        border-top-width: 1px;
+    }
+    .box{
+        height: 100px;
+        width: 100%;
+    }
+    #tab{
+        height: 100px;
+    }
+    .tab-item {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+    }
+    .tab-icon {
+        width: 50px;
+        height: 50px;
+    }
+    tab-bar {
+        align-items:flex-end;
+        height: 100px;
+        border-top-color: #DDDDDD;
+        border-top-width: 1px;
+    }
+    .selected {
+        color: #FF6402;
+    }
+</style>
+<script>
+    import router from '@system.router';
+    import webview from '@system.webview'
+    import fetch from '@system.fetch'
+    import prompt from '@system.prompt'
+    import { connect } from 'quickapp-redux'
+    import { inItdata } from '../../util/dataX.js'
+    import { defaultCarData, headerArrModel } from '../../util/defaultCarData.js'
+    import { ajaxFn,  getLocation, subscribe, storage_get, storage_set, storage_delete, storage_clear, idIsFn, rowListHeaderData, utlSpliceFn } from '../../util/util.js'
+    const filterPage = {
+        data: {
+            title: '筛选',
+            titleshow: true,
+            selectListIndex: -1,
+            scrollToData: {index: 0},
+            filterdata: [],
+            citySelectTop: false,
+            filterDataStorge: null,
+            goSubmit: 0,
+            isClick: false, // 是否点了 false 没有点
+            dataList: [
+                {
+                    data: [ // 车源特色
+                        {id: '0',title: '个人车源', type: 'cartype', data: '1'},
+                        {id: '1',title: '淘车认证', type: 'nflag', data: '3'},
+                        {id: '2',title: '品牌认证', type: 'nflag', data: '2'},
+                        {id: '3',title: '商家车源', type: 'cartype', data: '2'},
+                        {id: '4',title: '准新车', type: 'newcar', data: '1'}, // 是否准新车（1 是）
+                        {id: '5',title: '有图', type: 'pic', data: '1'}, // 是否有图（1-有）
+                    ],
+                    title: '车源特色（可多选）',
+                },
+                {
+                    data: [  // 车龄
+                        {id: '0',title: '1年内', type: 'hage', data: '1'},
+                        {id: '1',title: '2年内', type: 'hage', data: '2'},
+                        {id: '2',title: '3年内', type: 'hage', data: '3'},
+                        {id: '3',title: '3-5年', type: {lage : 3, hage: 5}},
+                        {id: '4',title: '5-8年', type: {lage : 5, hage: 8}},
+                        {id: '5',title: '8年以上', type: 'lage', data: '8'}
+                    ],
+                    title: '车龄'
+                },
+                {
+                    data: [ // 里程
+                        {id: '0',title: '1万公里以下', type: 'hmili', data: '1'},
+                        {id: '1',title: '3万公里以下', type: 'hmili', data: '3'},
+                        {id: '2',title: '5万公里以下', type: 'hmili', data: '5'},
+                        {id: '3',title: '10万公里以下', type: 'hmili', data: '10'},
+                        {id: '4',title: '10万公里以上', type: 'lmili', data: '10'}
+                    ],
+                    title: '里程'
+                },
+                {
+                    data: [ // 级别
+                        {id: '0',title: '微型车', type: 'carlevelid', data: '2'},
+                        {id: '1',title: '小型车', type: 'carlevelid', data: '4'},
+                        {id: '2',title: '紧凑型车', type: 'carlevelid', data: '7'},
+                        {id: '3',title: '中型车', type: 'carlevelid', data: '6'},
+                        {id: '4',title: '中大型车', type: 'carlevelid', data: '3'},
+                        {id: '5',title: '豪华车', type: 'carlevelid', data: '1'},
+                        {id: '6',title: 'MPV', type: 'carlevelid', data: '5'},
+                        {id: '7',title: 'SUV', type: 'carlevelid', data: '8'},
+                        {id: '8',title: '跑车', type: 'carlevelid', data: '9'},
+                        {id: '9',title: '皮卡', type: 'carlevelid', data: '12'},
+                        {id: '10',title: '面包车', type: 'carlevelid', data: '11'}
+                    ],
+                    title: '级别'
+                },
+                {
+                    data: [ // 排量
+                        {id: '0',title: '1.0L以下', type: 'exhaust', data: '1'},
+                        {id: '1',title: '1.0L-1.6L', type: 'exhaust', data: '2'},
+                        {id: '2',title: '1.6L-2.0L', type: 'exhaust', data: '3'},
+                        {id: '3',title: '2.0L-3.0L', type: 'exhaust', data: '4'},
+                        {id: '4',title: '3.0L以上', type: 'exhaust', data: '5'}
+                    ],
+                    title: '排量'
+                },
+                {
+                    data: [ // 变速箱
+                        {id: '0',title: '手动', type: 'gbx', data: '1'},
+                        {id: '1',title: '自动', type: 'gbx', data: '2'},
+                        {id: '2',title: '手自一体', type: 'gbx', data: '3'},
+                        {id: '3',title: '无级变速', type: 'gbx', data: '4'},
+                        {id: '4',title: '双离合', type: 'gbx', data: '5'}
+                    ],
+                    title: '变速箱'
+                },
+                {
+                    data: [ // 排放标准
+                        {id: '0',title: '国5', type: 'envir', data: '4'},
+                        {id: '1',title: '国4', type: 'envir', data: '3'},
+                        {id: '2',title: '国3', type: 'envir', data: '2'},
+                        {id: '3',title: '国2', type: 'envir', data: '1'},
+                        {id: '4',title: '京5', type: 'envir', data: '8'},
+                        {id: '5',title: '欧5', type: 'envir', data: '7'},
+                        {id: '6',title: '欧4', type: 'envir', data: '6'},
+                        {id: '7',title: '欧3', type: 'envir', data: '5'},
+                        {id: '8',title: 'OBD', type: 'envir', data: '9'}
+                    ],
+                    title: '排放标准'
+                }
+            ],
+            carPriceModelshow: true,
+            labeldata:[]
+        },
+        clearAll() {
+            this.selectListIndex = -1;
+            this.isClick = true
+            this.dispatch({ type: 'set', data: {filterdata: [[-1, -1, -1, -1, -1, -1], -1, -1, -1, -1, -1, -1]} })
+            this.submitShow( this.spliceUrlParamFn() )
+        },
+        // 能否 点击 确定
+        submitShow(params) {
+            const { cityId } = this.state.currnetData
+            let filterArr ;
+            let url;
+            if(this.isClick) {
+                filterArr = this.state.labeldata.filter(item => item.title !== '筛选' && item.title !== '淘车认证')
+                url = `${inItdata.http}?v=${inItdata.v}&imei=&cid=${cityId}&action=getcarcount${params}${utlSpliceFn(filterArr)}`
+            } else {
+                filterArr = this.state.labeldata.filter(item => item.title !== '淘车认证')
+                url = `${inItdata.http}?v=${inItdata.v}&imei=&cid=${cityId}&action=getcarcount${utlSpliceFn(filterArr)}`
+            }
+            console.log('filter url', url, JSON.stringify( filterArr))
+            ajaxFn(fetch, url, {}).then((res) => {
+                this.dispatch({ type: 'set', data: {isrefresh: false} })
+                if(res.code == '200') {
+                    let jsonParse = JSON.parse(res.data)
+                    if(jsonParse.status == '100') {
+                        this.goSubmit = jsonParse.data.AllCount
+                    } else {
+                        prompt.showToast({
+                            message: jsonParse.msg,
+                            duration: 0
+                        })
+                    }
+                } else {
+                    prompt.showToast({
+                        message: '网络异常',
+                        duration: 0
+                    })
+                }
+            })
+        },
+        setLabelDataFn(k, index_0, title) {
+            const json = {}
+            json.title = title
+            json.data = {
+                selectName: this.dataList[0].data[k].title
+            }
+            json.id = index_0 // 筛选 中 第几位， 某一项
+            json.index = k // 在筛选 中 第几位
+            json.type = this.dataList[0].data[k].type
+            json.params = this.dataList[0].data[k].data
+            return json
+        },
+        filterSubmit() {
+            let data = this.state.filterdata
+            let clearLable1;
+            let clearLable2;
+            let labeldataArr = this.state.labeldata.filter(item => item.title !== '筛选');
+            for(var i = 0; i < data.length; i++) {
+                let obj = this.dataList[i].data[data[i]]
+                if(i == 0) {
+                    for(var k = 0; k < data[0].length; k++) {
+                        let index_0 = data[0][k]
+                        if(index_0 != -1) {
+                            let obj = this.setLabelDataFn(k, index_0, '筛选')
+                            if (obj.data.selectName === '品牌认证' ||
+                                obj.data.selectName === '商家车源' ||
+                                obj.data.selectName === '个人车源' ||
+                                obj.data.selectName === '淘车认证') {
+                                labeldataArr = labeldataArr.filter(item => 
+                                    item.data.selectName !== '品牌认证' && 
+                                    item.data.selectName !== '商家车源' &&
+                                    item.data.selectName !== '个人车源' &&
+                                    item.data.selectName !== '淘车认证')
+                            }
+                            labeldataArr.push(obj)
+                            clearLable1 = true
+                        } 
+                    }
+                } else {
+                    if(data[i] != -1) {
+                        const json = {}
+                        json.title = '筛选'
+                        json.data = {
+                            selectName: obj.title
+                        }
+                        json.id = data[i] // 筛选 中 第几位， 某一项
+                        json.index = i // 在筛选 中 第几位
+                        json.type = obj.type
+                        json.params = obj.data
+                        labeldataArr.push(json)
+                        clearLable2 = true
+                    } 
+                }
+            }
+            this.state.labeldata = JSON.parse(JSON.stringify(labeldataArr));
+            if(!clearLable1 && !clearLable2) {
+                let labeldataArr = this.state.labeldata.filter(item => item.data.selectName !== '淘车认证')
+                    this.state.labeldata = JSON.parse(JSON.stringify(labeldataArr));
+                    this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+            } else {
+                this.dispatch({ type: 'set', data: {labeldata: this.state.labeldata} })
+            }
+            this.buyCarListData2()
+        },
+        // 买车页 写 标记选中
+        tabListClick(index, data, i){
+            if(index == this.state.filterdata[i]) {
+                this.state.filterdata[i] = -1
+                this.dispatch({ type: 'set', data: {filterdata: JSON.parse(JSON.stringify(this.state.filterdata))} })
+            } else {
+                this.state.filterdata[i] = index
+                this.dispatch({ type: 'set', data: {filterdata: JSON.parse(JSON.stringify(this.state.filterdata))} })
+            }
+            this.$dispatch('showBtnClick', {})
+            this.dispatch({ type: 'set', data: {citySelectTop: 1} })
+        },
+        tabListClick2(index, data, i){
+            if(this.state.filterdata[0][index] == -1) {
+                if(index == 0){
+                    this.state.filterdata[0][1] = -1
+                    this.state.filterdata[0][2] = -1
+                    this.state.filterdata[0][3] = -1
+                    this.state.filterdata[0][index] = 1
+                } else if(index == 1){
+                    this.state.filterdata[0][0] = -1
+                    this.state.filterdata[0][2] = -1
+                    this.state.filterdata[0][3] = -1
+                    this.state.filterdata[0][index] = 1
+                } else if(index == 2) {
+                    this.state.filterdata[0][0] = -1
+                    this.state.filterdata[0][1] = -1
+                    this.state.filterdata[0][3] = -1
+                    this.state.filterdata[0][index] = 1
+                } else if(index == 3) {
+                    this.state.filterdata[0][0] = -1
+                    this.state.filterdata[0][1] = -1
+                    this.state.filterdata[0][2] = -1
+                    this.state.filterdata[0][index] = 1
+                } else if(index == 4) {
+                    this.state.filterdata[1] = -1
+                    this.state.filterdata[2] = -1
+                    this.state.filterdata[0][index] = 1
+                } else {
+                    this.state.filterdata[0][index] = 1
+                }
+            } else {
+                this.state.filterdata[0][index] = -1
+            }
+            this.dispatch({ type: 'set', data: {filterdata: JSON.parse(JSON.stringify(this.state.filterdata))} })
+            // this.$dispatch('showBtnClick', {data})
+        },
+        tabListClick_a(index, data, i){
+            if(i == 1 || i == 2) {
+                this.state.filterdata[0][4] = -1
+            }
+            if(index == this.state.filterdata[i]) {
+                this.state.filterdata[i] = -1
+            } else {
+                this.state.filterdata[i] = index
+            }
+            this.dispatch({ type: 'set', data: {filterdata: JSON.parse(JSON.stringify(this.state.filterdata))} })
+            this.$dispatch('showBtnClick', {data})
+        },
+        onInit () {
+            this.$on('filterSelectData', this.filterSelectData)
+            this.$on('showBtnClick', this.showBtnClick)
+        },
+        // 拼接  url 后面的参数
+        spliceUrlParamFn() {
+            let arr = this.dataList
+            let str = '';
+            for(var i = 0; i < this.state.filterdata.length; i++) {
+                let obj = this.state.filterdata
+                if(i == 0) {
+                    for(var k = 0; k < this.state.filterdata[0].length; k++) {
+                        let index_0 = this.state.filterdata[0][k]
+                        if(index_0 != -1) {
+                            let key = arr[i].data[k].type
+                            let value = arr[i].data[k].data
+                            str += `&${key}=${value}`
+                        }
+                    }
+                } else {
+                    if(obj[i] != -1) {
+                        let key = arr[i].data[obj[i]].type
+                        let value = arr[i].data[obj[i]].data
+                        str += `&${key}=${value}`
+                    }
+                }
+            }
+            return str;
+        },
+        showBtnClick(params) {
+            this.isClick = true
+            this.submitShow( this.spliceUrlParamFn() )
+        },
+        filterSelectData(params) {
+        },
+        listScrollTo() {
+            this.$element('list').scrollTo({
+                index: 5
+            });
+        },
+        onShow(){
+            this.filterDataStorge = JSON.parse(JSON.stringify(this.state.filterdata));
+            this.submitShow( this.spliceUrlParamFn() )
+        },
+        // 返回
+        backFn(e) {
+            this.state.filterdata = this.filterDataStorge;
+            this.dispatch({ type: 'set', data: {filterdata: this.state.filterdata} })
+            router.back()
+            // 阻止默认行为，等待异步操作
+            return true
+        },
+        onBackPress() {
+            this.backFn()
+            return true
+        },
+        sortHeaderSet(D) {
+            if(this.state.currentRowlistdata.id != 0) {
+                let data = Array.from(new Set(D.concat([1])))
+                this.dispatch({ type: 'set', data: {headerArr: data} })
+            } else {
+                if(D.indexOf(1) != -1 ) {
+                    D.splice(D.indexOf(1), 1)
+                }
+                this.dispatch({ type: 'set', data: {headerArr: D} })
+            }
+        },
+        setheaerFn(labelD) {
+            let title = labelD.title
+            let n = headerArrModel[title]
+            let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+            if(D.indexOf(undefined) != -1 ) {
+                D.splice(D.indexOf(undefined), 1)
+            }
+            this.sortHeaderSet(D)
+        },
+        // 获取 头部数据 中 要取的数据在第几项
+        setHeaderDataIndex(labelD) {
+            console.log('a1111111', JSON.stringify(labelD))
+            let headerArr = this.state.headerArr
+            this.dispatch({ type: 'set', data: {headerArr: []} })
+
+            for(var i = 0; i < labelD.length; i++) {
+
+                if(labelD[i].title == 'home筛选_练手车') {
+                    for(var j = 0 ;j < labelD[i].type.length; j++) {
+                        let title = labelD[i].type[j].title
+                        let n = headerArrModel[title]
+                        let D = Array.from(new Set(this.state.headerArr.concat(n.reader)))
+                        if(D.indexOf(undefined) != -1 ) {
+                            D.splice(D.indexOf(undefined), 1)
+                        }
+                        this.dispatch({ type: 'set', data: {headerArr: D} })
+                    }
+                    this.sortHeaderSet(this.state.headerArr)
+                } else {
+                    if(labelD[i].title == '筛选') {
+                        if(labelD[i].data.selectName == '淘车认证') {
+                            let title = labelD[i].title
+                            let n = headerArrModel[title]
+                            let D = Array.from(new Set(this.state.headerArr.concat([0])))
+                            if(D.indexOf(undefined) != -1 ) {
+                                D.splice(D.indexOf(undefined), 1)
+                            }
+                            this.sortHeaderSet(D)
+                        } else {
+                            this.setheaerFn(labelD[i])
+                        }
+                    } else {
+                        this.setheaerFn(labelD[i])
+                    }
+                }
+            }
+        },
+        // 买车 列表数据
+        buyCarListData2(currnetData) {
+            this.dispatch({ type: 'set', data: {citySelectTop: 2} })
+            this.dispatch({ type: 'set', data: {isrefresh: true} })
+            this.setHeaderDataIndex(this.state.labeldata)
+            router.back()
+        },
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+           
+            component.filterdata = dataPatch.state.filterdata
+            component.labeldata = dataPatch.state.labeldata
+            component.currentIndex = dataPatch.state.currentIndex
+            component.currnetData = dataPatch.state.currnetData
+            component.currentRowlistdata = dataPatch.state.currentRowlistdata
+            component.citySelectTop = dataPatch.state.citySelectTop
+        }
+    }
+    export default connect( mapStateToData, fn )(filterPage)
+</script>

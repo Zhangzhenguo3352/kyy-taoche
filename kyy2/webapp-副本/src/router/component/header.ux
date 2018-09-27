@@ -1,0 +1,146 @@
+<template>
+    <div class="headerMain">
+        <slot></slot>
+        <div class="div style1" if="{{locationstate == 'currentCity' && show}}" @click="tabsChangeSlider">
+            <text>{{ prop1.cityName }}</text>
+            <image src="../../static/icon/xia.png" alt="" class="xia_img"></image>
+        </div>
+        <div class="div style1" if="{{locationstate == 'selectCity' && show}}" @click="tabsChangeSlider">
+            <text>{{ selectlocation.cityName  }}</text>
+            <image src="../../static/icon/xia.png" alt="" class="xia_img"></image>
+        </div>
+        <div class="div style1" if="{{ !show}}" ></div>
+        <div class="div style1" if="{{ !titleshow}}" ><text>{{ prop1  }}</text></div>
+        
+        <!-- <div class="div style1" if="{{!prop1 && titleshow}}"><text>{{ prop1  }}</text></div>
+        <div class="div style1" if="{{!!prop1 && titleshow}}"  @click="tabsChangeSlider"><text>{{ prop1  }}</text></div> -->
+
+        <div class="div style2" if="{{title}}" ><text lines="1" text-overflow="ellipsis" style="width: 100%; text-align: center;">{{title}}</text></div>
+        <div class="div style2" if="{{!title}}" ><text></text></div>
+        
+        <div class="div style3 padd_right_30" 
+            elif="{{menu == 'menu'}}" style="justify-content: flex-end;flex-direction: row;"
+            @click="clickMenu"
+            >
+            <image src="../../static/icon/menu.png" alt="" class="menuImage" resize-mode="contain"/>
+        </div>
+        <div class="div style3 padd_right_30" 
+            elif="{{menu == 'close'}}" style="justify-content: flex-end;flex-direction: row;"
+            @click="tabsChangeBack"
+            >
+            <image src="../../../static/icon/1111.png" alt="" class="closeImg" />
+        </div>
+        <div class="div style3" else></div>
+    </div>
+</template>
+
+<script>
+    import shortcut from '@system.shortcut'
+    import prompt from '@system.prompt'
+    import router from '@system.router';
+    import { createShortcut } from '../../util/util.js'
+    export default {
+        props: [
+            'prop1',
+            'menu',
+            'title',
+            'showback',
+            'show',
+            'titleshow', // 该对象如果没有传， 左边不显示 ，因此外界必须传入 true 才显现 左边地点控件
+            'locationstate',
+            'selectlocation'
+        ],
+        data: {},
+        tabsChangeBack(e) {
+            router.back()
+        },
+        clickMenu(){
+            let itemList = ['保存到桌面'];
+            prompt.showContextMenu({
+                itemList: itemList,
+                itemColor: '#333333',
+                success: (data)=> {
+                    console.log("handling callback",data.index);
+                    if(data.index == 0) {
+                        createShortcut()
+                    }
+                },
+                cancel: (data)=> {
+                    console.log("handling cancel");
+                },
+                fail: (data, code) =>{
+                    console.log("handling fail, code=" + code);
+                }
+            })
+        },
+        onInit() { },
+        tabsChangeSlider(e) {
+            router.push({
+                uri: 'router/component/slider',
+                params: {
+                    cityType: '1'
+                }
+            })
+        },
+    }
+</script>
+<style>
+    .menuImage{
+        width: 44px;
+        height: 10px;
+    }
+    .closeImg{
+        width: 44px;
+        height: 40px;
+    }
+    .headerMain{
+        height: 100px;
+        width: 100%;
+        position:fixed;
+        top: 0;
+        left: 0;
+        background-color: #FBFBFB;
+        flex-direction: row;
+        border-bottom-color: #DDDDDD;
+        border-bottom-width: 1px;
+    }
+    .style1{
+        width: 190px;
+        justify-content: flex-start;
+        padding-left: 30px;
+    }
+    .xia_img{
+        width: 18px;
+        height: 12px;
+        margin-top: 46px;
+        margin-left: 16px;
+    }
+    .style1 text{
+        color: #2F3540;
+        font-size: 30px;
+    }
+    .style2{
+        justify-content: center;
+        align-items:center;
+        flex:1;
+    }
+    .style2 text{
+        font-size: 32px;
+        color: #2F3540;
+        font-weight:bold;
+        width: 100%;
+        text-align: center;
+    }
+    .style3{
+        justify-content: center;
+        flex-direction: column;
+        align-items:center;
+        width: 190px;
+        flex-shrink: 0;
+        flex-basis: 130px;
+    }
+    .padd_right_30{
+        padding-right: 30px;
+    }
+</style>
+

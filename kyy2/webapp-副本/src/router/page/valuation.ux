@@ -1,0 +1,385 @@
+
+<!-- 估价 -->
+<import name="toast"  src="../../router/component/toast"></import>
+
+<template>
+    <!-- template里只能有一个根节点 -->
+    <div style="flex-direction: column;margin-top:88px" class="me"  >
+
+        <!-- banner -->
+        <div>
+            <image class="banner1" resize-mode="contain" src="../../static/banner1.png" alt="图片加载失败"></image>
+        </div>
+        <!-- 用户信息 -->
+        <div class="listBox">
+            <text>品牌车型</text>
+            <div class="right" @click="tabBuyCarClick">
+                <!-- <text>{{carBrand.name1.Name}}</text> -->
+                <text lines="1" text-overflow="ellipsis" style="color:{{carBrand.name1.Name?'#2F3540':'#B0B3B4'}};font-size:32px;flex:1;text-align:right;">{{carBrand.name1.Name?(carBrand.name2.Name?(carBrand.name3.Name?(carBrand.name2.Name+' '+carBrand.name3.Name):carBrand.name2.Name):carBrand.name1.Name):'请选择'}}</text>
+                <image src="../../static/icon/gray_arrow_2x.png" alt="" class="rightIcon"></image>
+            </div>
+        </div>
+        <div class="listBox">
+            <text>上牌时间</text>
+            <div class="right"  @click="buyCarTime">
+                <!-- <picker type="date" style="color:{{dateColor}}" class="datePicker" value="{{dateValue||'请选择日期'}}" @change="pickerChange('date')"/> -->
+                <text style="color:{{dateColor}};font-size:32px">{{dateValue||'请选择日期'}}</text>
+                <image src="../../static/icon/gray_arrow_2x.png" alt="" class="rightIcon"></image>
+            </div>
+        </div>
+        <div class="listBox">
+            <text>行驶里程</text>
+            <div class="right">
+                <input type="date" value="{{mileage}}" placeholder="请输入" @change="inpuChange1">
+                <text class="text-box">万公里</text>
+            </div>
+        </div>
+        <div class="listBox">
+            <text>所在城市</text>
+            <div class="right" @click="selectCityFun">
+                <!-- <text style="color:{{currnetData.cityName && currnetData.cityId == 0 &&valuationState == 0?'#B0B3B4':'#2F3540'}};font-size:32px">{{(valuationState == 0) ? (currnetData.cityName && currnetData.cityId == 0 ? '请选择' : currnetData.cityName) : (valuationCityData.cityName)}}</text> -->
+                <text style="color:{{cityNameColor}};font-size:32px">{{cityData.cityName}}</text>
+                <image src="../../static/icon/gray_arrow_2x.png" alt="" class="rightIcon"></image>
+            </div>
+
+        </div>
+        <div class="listBox">
+            <text>手机号</text>
+            <input class="phone" value="{{phoneVal}}" placeholder="请输入手机号" type="number" @change="inpuChange2"/>
+        </div>
+        <!-- 免费估价 -->
+        <!-- @click="goLink('http://cooper.m.taoche.com/pinggu/')" -->
+        <div class="price_box" @click="freeValuation">
+            <div class="price"><text>立即评估</text></div>
+        </div>
+        <!-- 全局提醒用户 model -->
+        <toast drawershow="{{drawershow}}" if="{{drawershowtype}}" text="{{text}}"></toast>
+    </div>
+</template>
+
+<script>
+    import router from '@system.router'
+    import fetch from '@system.fetch'
+    import { connect } from 'quickapp-redux'
+    import { inItdata } from '../../util/dataX.js'
+    import { ajaxFn, phoneNumberFn } from '../../util/util.js'
+    import device from '@system.device'
+
+    const valuation =  {
+        data: {
+            dateValue: '',
+            dateColor: '#B0B3B4',
+            phoneVal: '',
+            mileage: '',
+            drawershow: '',
+            drawershowtype: '',
+            text: '',
+            currnetData: null,
+            carBrand: '',
+            valuationState: 0,
+            valuationCityData: {},
+            cityData:{},
+            cityNameColor: '#B0B3B4'
+        },
+        onInit () {
+
+        },
+        onShow () {
+
+        },
+        selectCityFun() {
+            router.push({
+                uri: 'router/component/slider',
+                params: {
+                    cityType: '3'
+                }
+            })
+        },
+        tabBuyCarClick() {
+            router.push({
+                uri: 'router/brandpage',
+                params: {
+                    key: '3'
+                }
+            })
+        },
+        buyCarTime() {
+            router.push({
+                uri: 'router/component/timeComponent',
+                params: {
+                    key: '3'
+                }
+            })
+        },
+        /* pickerChange(what, e) {
+            if (what == 'date') {
+                this.dateValue = e.year + "-" + (e.month + 1) + "-" + e.day;
+                this.dateColor = '#2F3540';
+            } else if (what == 'province'){
+                this.province = e.newValue;
+                this.selectProvince = this.lists[e.newSelected];
+                this.getCityList();
+                this.getAreaList();
+            } else if (what == 'city'){
+                this.city = e.newValue;
+                this.selectCity = this.selectProvince.city[e.newSelected];
+                this.getAreaList();
+            } else if (what == 'area'){
+                this.area = e.newValue;
+            }
+        }, */
+        inpuChange1(e) {
+            if (e.value&&e.value!="null") {
+                var isFloat = e.value.indexOf('.')
+                if (isFloat != -1) {
+                    var val = e.value.replace(/\./g,'')
+                    if (val.length>4) {
+                        this.mileage = Number(val.slice(0,2) + '.' + val.slice(2,4))
+                    } else {
+                        this.mileage = e.value
+                    }
+                }else {
+                    if (e.value.length>2) {
+                        this.mileage = Number(e.value.slice(0,2))
+                    } else {
+                        this.mileage = e.value
+                    }
+                }
+
+            } else {
+                this.mileage = ''
+            }
+
+        },
+        inpuChange2(e) {
+            if (e.value) {
+                if (e.value.length>11) {
+                    this.phoneVal = Number(e.value.slice(0,11))
+                } else {
+                    this.phoneVal = e.value
+                }
+            } else {
+                this.phoneVal = ''
+            }
+
+        },
+        // 取消掉 显现框
+        showModelFn(text) {
+            clearTimeout(timer1)
+            clearTimeout(timer2)
+            var timer1 = null;
+            var timer2 = null;
+            this.drawershow = true
+            this.drawershowtype = true
+            this.text = text
+            timer1 = setTimeout(() => {
+                clearTimeout(timer1)
+                this.drawershow = false
+                timer2 = setTimeout( () => {
+                    this.drawershowtype = false
+                    clearTimeout(timer2)
+                }, 500)
+            }, 1800)
+        },
+        getIntervalMonth(startDate, endDate) { //计算相差的月份 参数需为日期格式
+            var startMonth = startDate.getMonth();
+            var endMonth = endDate.getMonth();
+            return Math.abs((endDate.getFullYear()*12+endMonth) - (startDate.getFullYear()*12+startMonth));
+        },
+        freeValuation() {
+            /* const { cityId } = this.state.currnetData
+            let url = `${inItdata.http}?v=${inItdata.v}&action=HighPriceCarSourceClue&mobile=${this.inputContent}&cityId=${cityId}`
+            console.log('估价', url ) */
+            var that = this;
+            if (!this.carBrand.name3.Name) {
+                this.showModelFn('请选择估价车款')
+                return
+            }
+            if (!this.dateValue) {
+                this.showModelFn('请选择上牌时间')
+                return
+            } else if (Date.parse(this.dateValue) < Date.parse(this.carBrand.name3.paragraph.CarYear) || Date.parse(this.dateValue) >= Date.parse(new Date())) {
+                this.showModelFn('请选择正确的上牌时间')
+                return
+            }
+            if (!this.mileage) {
+                this.showModelFn('请输入行驶里程')
+                return
+            } else if (this.mileage/this.getIntervalMonth(new Date(this.dateValue),new Date()) > 1) {
+                this.showModelFn('请输入正确的行驶里程')
+                return
+            }
+
+            if (!this.cityData.cityId || this.cityData.cityId == 0 ) {
+                this.showModelFn('请选择所在城市')
+                return
+            }
+
+            if(phoneNumberFn(this.phoneVal)) {
+                device.getInfo({
+                    success: function (ret) {
+                        var url = `${inItdata.http}?v=${inItdata.v}&action=getevaluation&mobile=${that.phoneVal}&city=${that.cityData.cityId}&date=${that.dateValue}&serial=${that.carBrand.name2.ID}&mileage=${that.mileage}&type=1&modelId=${that.carBrand.name3.ID}&product=${that.carBrand.name3.ID}&manufacturer=${ret.brand}`
+                        ajaxFn(fetch, url, {}).then((res) => {
+                            if(res.code == '200') {
+                                var data = JSON.parse(res.data)
+                                if (data.status == '100') {
+                                    console.log(JSON.stringify(data.data))
+                                    if (data.data.MidPrice==0) {
+                                        that.showModelFn('很遗憾，暂无该车源估价数据！')
+                                    } else {
+                                        router.push({
+                                            uri: 'router/valuationResult',
+                                            params: {
+                                                json: data.data
+                                            }
+                                        })
+                                    }
+                                } else {
+                                    that.showModelFn(data.msg)
+                                }
+
+                            } else {
+                                that.showModelFn('响应失败，请稍后重试')
+                            }
+                        })
+                    }
+                })
+            } else {
+                if(this.phoneVal == '') {
+                    this.showModelFn('请输入手机号')
+                } else {
+                    this.showModelFn('请输入正确的手机号')
+                }
+            }
+        }
+    }
+    function mapStateToData(state) {
+        return {
+            state
+        }
+    }
+
+    const fn = {
+        componentWillReceiveDataPatch: (component, dataPatch, state) => {
+            // component.$page.setTitleBar({ text: dataPatch.state.a })
+            // component.title = dataPatch.state.title
+            var currnetData = dataPatch.state.currnetData
+            component.carBrand = dataPatch.state.carModelData
+            // component.valuationState = dataPatch.state.valuationState
+            var valuationCityData = dataPatch.state.valuationCityData
+            /* if (currnetData.cityId == 0 || valuationCityData.cityId == 0) {
+                component.cityData = { cityId:null, cityName: '请选择' }
+                component.cityNameColor = '#B0B3B4'
+            } else {
+                if (dataPatch.state.valuationState == 0) {
+                    component.cityNameColor = '#2F3540'
+                    component.cityData = currnetData
+                } else {
+                    component.cityNameColor = '#2F3540'
+                    component.cityData = valuationCityData
+                }
+            } */
+
+            if (dataPatch.state.valuationState == 0) {
+                if (currnetData.cityId == 0) {
+                    component.cityData = { cityId:null, cityName: '请选择' }
+                    component.cityNameColor = '#B0B3B4'
+                } else {
+                    component.cityNameColor = '#2F3540'
+                    component.cityData = currnetData
+                }
+            } else {
+                if (valuationCityData.cityId == 0) {
+                    component.cityData = { cityId:null, cityName: '请选择' }
+                    component.cityNameColor = '#B0B3B4'
+                } else {
+                    component.cityNameColor = '#2F3540'
+                    component.cityData = valuationCityData
+                }
+            }
+            var timeData = dataPatch.state.timeData
+            if (timeData && timeData.year && timeData.month) {
+                component.dateValue = timeData.year + '-' + (timeData.month>=10?timeData.month:'0' + timeData.month)
+                component.dateColor = '#2F3540'
+            } else {
+                component.dateValue = ''
+                component.dateColor = '#B0B3B4'
+            }
+        }
+    }
+
+    export default connect(
+        // mapStateToProps
+        mapStateToData,
+        fn
+    )(valuation)
+</script>
+
+<style>
+    .datePicker{
+        font-size: 32px;
+        z-index: 0;
+        flex-grow: 1;
+        text-align: right;
+    }
+    .rightIcon{
+        width:12px;
+        height:20px;
+        align-self:center;
+        margin-left: 30px;
+    }
+    .right{
+        justify-content: flex-end;
+        align-items: center;
+        width: 600px;
+    }
+    /* .listBox .gray{
+        color: #B0B3B4!important;
+    } */
+    .listBox .gray{
+        color: #f44336;
+    }
+    .listBox input{
+        font-size: 32px;
+        text-align: right;
+        flex: 1;
+        align-items: center;
+    }
+    .listBox{
+        height:110px;
+        width:690px;
+        margin: 0 30px;
+        justify-content: center;
+        align-items: center;
+        border-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: #E5E5E5;
+    }
+    .listBox>text,.text-box{
+        font-size: 32px;
+        color: #2F3540;
+    }
+    .listBox>text{
+        width:150px;
+    }
+    .price_box{
+        justify-content: center;
+    }
+    .price_box .price text{
+        font-size: 32px;
+        color: #FFF;
+    }
+    .price_box .price{
+        background-color: #FF6402;
+        border-radius: 5px;
+        justify-content: center;
+        width: 690px;
+        height: 90px;
+        margin-top: 40px;
+    }
+    .banner1{
+        height: 240px;
+        width: 750px;
+    }
+
+</style>
